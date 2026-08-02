@@ -1,0 +1,353 @@
+/* =========================================================
+   PricePulse — Shared application logic
+   ========================================================= */
+
+let PRODUCTS = [];
+
+const CATEGORY_LABELS = {
+  phones: "Phones",
+  watches: "Smartwatches",
+  accessories: "Accessories",
+  laptops: "Laptops",
+};
+
+function bestPrice(product) {
+  return product.stores.reduce((a, b) => (a.price < b.price ? a : b));
+}
+
+function money(n) {
+  return "$" + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function discountPct(oldP, newP) {
+  return Math.round(((oldP - newP) / oldP) * 100);
+}
+
+function showToast(msg) {
+  let toast = document.querySelector(".toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.className = "toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove("show"), 2200);
+}
+
+function productCardHTML(p) {
+  if (!p.stores || p.stores.length === 0) return '';
+  const best = bestPrice(p);
+  const pct = discountPct(best.old, best.price);
+  return `
+    <article class="product-card" data-id="${p.id}">
+      ${pct > 0 ? `<span class="badge-drop">${pct}% OFF</span>` : ""}
+      <div class="product-thumb" aria-hidden="true">${p.icon}</div>
+      <div class="product-body">
+        <div class="store-list">
+          ${p.stores.map(s => `<span class="store-tag">${s.name}</span>`).join(' ')}
+        </div>
+        <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
+        <div class="price-row">
+          <span class="price-old">${money(best.old)}</span>
+          <span class="price-new">${money(best.price)}</span>
+        </div>
+        <button class="btn cheapest-btn" data-id="${p.id}" type="button">Best Price</button>
+      </div>
+    </article>
+  `;
+}
+
+function renderGrid(container, products) {
+  if (!container) return;
+  if (products.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🔍</div>
+        <p>No matching results found.</p>
+      </div>`;
+    return;
+  }
+  container.innerHTML = products.map(productCardHTML).join("");
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".cheapest-btn");
+  if (!btn) return;
+  const product = PRODUCTS.find((p) => p.id === btn.dataset.id);
+  if (!product) return;
+  const best = bestPrice(product);
+  showToast(`Best price for ${product.name}: ${money(best.price)} from ${best.name}`);
+});
+
+// ===== التعديل الرئيسي: جلب البيانات من السيرفر =====
+async function initHomePage() {
+  const grid = document.querySelector("#product-grid");
+  if (!grid) return;
+
+  try {
+    const response = await fetch('/api/public/products');
+    if (!response.ok) throw new Error('Failed to fetch products');
+    PRODUCTS = await response.json();
+  } catch (err) {
+    console.error('Error loading products:', err);
+    grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Unable to load products. Please try again later.</p></div>`;
+    return;
+  }
+
+  let initialFilter = "all";
+  const returnCat = sessionStorage.getItem('returnCategory');
+  if (returnCat) {
+    initialFilter = returnCat;
+    sessionStorage.removeItem('returnCategory');
+  }
+
+  const savedScroll = parseInt(sessionStorage.getItem('returnScroll') || '0');
+  const savedCardId = sessionStorage.getItem('returnCardId');
+  sessionStorage.removeItem('returnScroll');
+  sessionStorage.removeItem('returnCardId');
+
+  renderGrid(grid, PRODUCTS);
+
+  const searchInput = document.querySelector("#search-input");
+  const tabs = document.querySelectorAll(".tab[data-filter]");
+  let activeFilter = initialFilter;
+
+  function applyFilters() {
+    const term = (searchInput?.value || "").trim();
+    let list = PRODUCTS;
+    if (activeFilter !== "all") {
+      list = list.filter((p) => p.category === activeFilter);
+    }
+    if (term) {
+      list = list.filter((p) => p.name.toLowerCase().includes(term.toLowerCase()));
+    }
+    renderGrid(grid, list);
+  }
+
+  tabs.forEach((tab) => {
+    if (tab.dataset.filter === activeFilter) {
+      tab.classList.add("active");
+      tab.setAttribute("aria-selected", "true");
+    } else {
+      tab.classList.remove("active");
+      tab.setAttribute("aria-selected", "false");
+    }
+  });
+
+  searchInput?.addEventListener("input", applyFilters);
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      tabs.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      activeFilter = tab.dataset.filter;
+      applyFilters();
+    });
+  });
+
+  document.querySelector("#search-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    applyFilters();
+  });
+
+  applyFilters();
+
+  if (savedScroll > 0 || savedCardId) {
+    setTimeout(() => {
+      if (savedCardId) {
+        const targetCard = document.querySelector(`.product-card[data-id="${savedCardId}"]`);
+        if (targetCard) {
+          targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+      }
+      if (savedScroll > 0) {
+        window.scrollTo({ top: savedScroll, behavior: 'smooth' });
+      }
+    }, 300);
+  }
+}
+
+function initOffersPage() {
+  const grid = document.querySelector("#offers-grid");
+  if (!grid) return;
+
+  if (PRODUCTS.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>No products available.</p></div>`;
+    return;
+  }
+
+  const withDiscount = PRODUCTS.map((p) => ({ p, best: bestPrice(p) }))
+    .filter((x) => discountPct(x.best.old, x.best.price) > 0)
+    .sort((a, b) => discountPct(b.best.old, b.best.price) - discountPct(a.best.old, a.best.price));
+
+  let list = withDiscount.map((x) => x.p);
+  renderGrid(grid, list);
+
+  const chips = document.querySelectorAll(".chip[data-sort]");
+  chips.forEach((chip) => {
+    chip.addEventListener("click", () => {
+      chips.forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      const sort = chip.dataset.sort;
+      let sorted = [...list];
+      if (sort === "price-asc") sorted.sort((a, b) => bestPrice(a).price - bestPrice(b).price);
+      if (sort === "price-desc") sorted.sort((a, b) => bestPrice(b).price - bestPrice(a).price);
+      if (sort === "discount") {
+        sorted.sort((a, b) => {
+          const da = discountPct(bestPrice(a).old, bestPrice(a).price);
+          const db = discountPct(bestPrice(b).old, bestPrice(b).price);
+          return db - da;
+        });
+      }
+      renderGrid(grid, sorted);
+    });
+  });
+}
+
+function initCategoriesPage() {
+  const wrap = document.querySelector("#category-counts");
+  if (!wrap) return;
+  if (PRODUCTS.length === 0) return;
+  
+  wrap.querySelectorAll(".cat-card").forEach((card) => {
+    const cat = card.dataset.category;
+    const count = PRODUCTS.filter((p) => p.category === cat).length;
+    const countEl = card.querySelector(".count");
+    if (countEl) countEl.textContent = `${count} Products`;
+  });
+}
+
+function initProductPage() {
+  const wrap = document.querySelector("#product-detail");
+  if (!wrap) return;
+
+  const params = new URLSearchParams(location.search);
+  const id = params.get("id") || (PRODUCTS.length > 0 ? PRODUCTS[0].id : null);
+  
+  if (!id || PRODUCTS.length === 0) {
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Product not found.</p></div>`;
+    return;
+  }
+
+  const cat = params.get("cat") || "all";
+
+  if (cat && cat !== "all") {
+    sessionStorage.setItem('returnCategory', cat);
+  } else {
+    sessionStorage.removeItem('returnCategory');
+  }
+  sessionStorage.setItem('returnScroll', window.scrollY);
+  sessionStorage.setItem('returnCardId', id);
+
+  const product = PRODUCTS.find((p) => p.id === id);
+  if (!product) {
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Product not found.</p></div>`;
+    return;
+  }
+
+  const best = bestPrice(product);
+  const sortedStores = [...product.stores].sort((a, b) => a.price - b.price);
+
+  document.title = `${product.name} — PricePulse`;
+
+  wrap.innerHTML = `
+    <div class="pd-hero">
+      <div class="pd-image" aria-hidden="true">${product.icon}</div>
+      <div class="pd-info">
+        <h1>${product.name}</h1>
+        <div class="stars" aria-label="Rating ${product.rating} out of 5">${"★".repeat(Math.round(product.rating))}${"☆".repeat(5 - Math.round(product.rating))}
+          <span style="color:var(--muted); font-weight:600; font-size:.85rem;">(${product.reviews} reviews)</span>
+        </div>
+        <div class="price-row">
+          <span class="price-old">${money(best.old)}</span>
+          <span class="price-new">${money(best.price)}</span>
+        </div>
+        <button class="btn cheapest-btn" data-id="${product.id}" type="button" style="width:auto; padding:12px 22px;">
+          Get Best Price — ${best.name}
+        </button>
+      </div>
+    </div>
+
+    <div class="section-title"><h2>Compare Prices Across Stores</h2></div>
+    <div class="info-card" style="padding:0; overflow-x:auto;">
+      <table class="compare-table">
+        <thead>
+          <tr><th>Store</th><th>Price</th><th>List Price</th><th></th></tr>
+        </thead>
+        <tbody>
+          ${sortedStores
+            .map(
+              (s, i) => `
+            <tr class="${i === 0 ? "row-best" : ""}">
+              <td>${s.name}${i === 0 ? " 🏆" : ""}</td>
+              <td>${money(s.price)}</td>
+              <td class="price-old">${money(s.old)}</td>
+              <td><button class="btn small ghost visit-store-btn" type="button" data-store="${s.name}">Visit Store</button></td>
+            </tr>`
+            )
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function initContactForm() {
+  const form = document.querySelector("#contact-form");
+  if (!form) return;
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const name = form.querySelector("#name").value.trim();
+    const email = form.querySelector("#email").value.trim();
+    const message = form.querySelector("#message").value.trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    if (!name || !emailOk || !message) {
+      showToast("Please make sure all fields are filled out correctly.");
+      return;
+    }
+    showToast("Your message has been sent successfully. We will get back to you soon.");
+    form.reset();
+  });
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".visit-store-btn");
+  if (!btn) return;
+  showToast(`Redirecting to ${btn.dataset.store}...`);
+});
+
+function markActiveNav() {
+  const current = location.pathname.split("/").pop() || "index.html";
+  document.querySelectorAll(".bottom-nav a, .brand-links a").forEach((a) => {
+    const href = a.getAttribute("href");
+    if (href === current) a.classList.add("active");
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  markActiveNav();
+  initHomePage();
+  initOffersPage();
+  initCategoriesPage();
+  initProductPage();
+  initContactForm();
+});
+
+document.addEventListener("click", function(e) {
+    const link = e.target.closest("a");
+    if (!link) return;
+    const href = link.getAttribute("href");
+    if (!href) return;
+    if (href.startsWith("http") || href.startsWith("#") || href.startsWith("javascript:")) return;
+
+    if (href.startsWith("product.html")) {
+        return;
+    }
+
+    e.preventDefault();
+    window.location.replace(href);
+});
