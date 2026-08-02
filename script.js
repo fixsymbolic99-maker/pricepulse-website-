@@ -345,16 +345,15 @@ async function initProductPage() {
             .map(
               (s, i) => `
             <tr class="${i === 0 ? "row-best" : ""}" style="border-bottom: 1px solid var(--border-soft);">
-              <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">
-                <div style="display: flex; align-items: center; justify-content: center; direction: ltr;">
-                  <!-- المتجر الأول لونه أخضر، والباقي عادي -->
-                  <span style="font-weight: 600; color: ${i === 0 ? 'var(--good)' : 'var(--text)'};">${s.name}</span>
-                  <!-- تم تثبيت عرض الرقم (min-width) لضمان المحاذاة العمودية بالضبط -->
-                  <span style="display: inline-block; min-width: 1.5em; text-align: center; font-weight: 700; margin-left: 8px; color: ${i === 0 ? 'var(--good)' : 'var(--text)'};">${i + 1}</span>
+              <td style="width: 25%; text-align: center; padding: 15px 10px; vertical-align: middle;">
+                <div style="display: flex; align-items: center; justify-content: center; direction: ltr; width: 100%;">
+                  <!-- استخدام flex: 1 للاسم ليدفع الرقم دائماً لنفس المكان -->
+                  <span style="flex: 1; text-align: center; font-weight: 600; color: ${i === 0 ? 'var(--good)' : 'var(--text)'};">${s.name}</span>
+                  <span style="width: 1.8em; text-align: center; font-weight: 700; color: ${i === 0 ? 'var(--good)' : 'var(--text)'};">${i + 1}</span>
                 </div>
               </td>
-              <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">${money(s.price || product.price, currency, false)}</td>
-              <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">
+              <td style="width: 35%; text-align: center; padding: 15px 10px; vertical-align: middle;">${money(s.price || product.price, currency, false)}</td>
+              <td style="width: 40%; text-align: center; padding: 15px 10px; vertical-align: middle;">
                 ${s.url ? `<a href="${s.url}" target="_blank" class="btn small ghost" style="display: inline-block; text-decoration:none; margin: 0 auto;">زيارة المتجر</a>` : `<span style="color:var(--muted);">لا يوجد رابط</span>`}
               </td>
             </tr>`
