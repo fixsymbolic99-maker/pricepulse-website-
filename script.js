@@ -5,24 +5,34 @@
 let PRODUCTS = [];
 const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 
-// ===== تنسيق العملة (تم التعديل ليكون مثل أمازون تماماً) =====
+// ===== تنسيق العملة (تم التعديل النهائي ليتوافق مع اتجاه العرض العربي) =====
 (function addCurrencyStyle() {
   const style = document.createElement('style');
   style.textContent = `
-    .currency-symbol { font-size: 0.75em; font-weight: 600; color: var(--text-dim, #8A7A6D); margin-left: 2px; }
-    .price-number { font-weight: 800; font-size: inherit; }
-    
-    /* تنسيق الجزء العشري ليظهر صغيراً ومرفوعاً مثل 6,620.⁰⁰ */
-    .price-decimal {
-        font-size: 0.45em;
-        font-weight: 700;
-        vertical-align: text-top;
-        display: inline-block;
-        line-height: 1;
-        margin-left: -1px; /* لتقريبها للرقم الأساسي */
+    .price-amount { 
+        display: inline-flex; 
+        align-items: baseline; 
+        direction: ltr; 
+        white-space: nowrap; 
+    }
+    .currency-symbol { 
+        font-size: 0.7em; 
+        font-weight: 600; 
+        color: var(--text-dim, #8A7A6D); 
+        margin-right: 2px; 
+    }
+    .price-number { 
+        font-weight: 800; 
+        font-size: inherit; 
+    }
+    .price-decimal { 
+        font-size: 0.4em; 
+        font-weight: 700; 
+        vertical-align: super; 
+        line-height: 1; 
     }
     
-    /* فصل السعرين */
+    /* فصل السعرين في البطاقة */
     .price-wrapper { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 8px; }
     .price-current { font-size: 1.15rem; color: var(--good); }
     .price-original { font-size: 0.85rem; color: var(--muted); text-decoration: line-through; }
@@ -41,11 +51,11 @@ function money(n, currency = 'EGP') {
   const integerPart = parts[0];
   const decimalPart = parts.length > 1 ? parts[1] : '00';
 
-  // هنا التغيير المهم: ضم النقطة (.) مع الـ 00 داخل نفس الكلاس الصغير
   if (currency === 'EGP') {
-    return `<span class="currency-symbol">EGP</span> <span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span>`;
+    // تم استخدام wrapping class مع أمر اتجاه اجباري (ltr) عشان يظهر بالشكل الصحيح في الموقع العربي
+    return `<span class="price-amount"><span class="currency-symbol">EGP</span><span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span></span>`;
   }
-  return `<span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span>`;
+  return `<span class="price-amount"><span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span></span>`;
 }
 
 function discountPct(oldP, newP) {
@@ -81,7 +91,7 @@ function productCardHTML(p) {
         </div>
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
         
-        <!-- السعر الحالي والأصلي بنفس التنسيق -->
+        <!-- السعر الحالي والأصلي بنفس التنسيق الصحيح -->
         <div class="price-wrapper">
           <div class="price-current">${money(best.price, currency)}</div>
           ${best.old > 0 ? `<div class="price-original">${money(best.old, currency)}</div>` : ''}
