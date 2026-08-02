@@ -111,7 +111,8 @@ function showToast(msg) {
     toast.className = "toast";
     document.body.appendChild(toast);
   }
-  toast.textContent = msg;
+  // تم إصلاح المشكلة هنا: تغيير textContent إلى innerHTML
+  toast.innerHTML = msg; 
   toast.classList.add("show");
   clearTimeout(showToast._t);
   showToast._t = setTimeout(() => toast.classList.remove("show"), 2200);
@@ -279,7 +280,7 @@ async function initHomePage() {
 function initOffersPage() {
   const grid = document.querySelector("#offers-grid");
   if (!grid) return;
-  // ... نفس منطق العروض
+
   if (PRODUCTS.length === 0) {
     grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>لا توجد منتجات متاحة.</p></div>`;
     return;
@@ -375,7 +376,6 @@ async function initProductPage() {
       <div class="pd-image" aria-hidden="true">${product.icon}</div>
       <div class="pd-info">
         <h1>${product.name}</h1>
-        <!-- استخدام التقييمات الحقيقية المخزنة في قاعدة البيانات -->
         <div class="stars" aria-label="التقييم ${rating} من 5">${ratingStars}
           <span style="color:var(--muted); font-weight:600; font-size:.85rem;">(${reviews} تقييم)</span>
         </div>
