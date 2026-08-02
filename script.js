@@ -75,16 +75,25 @@ document.addEventListener("click", (e) => {
   showToast(`أفضل سعر لـ ${product.name}: ${money(best.price)} من ${best.name}`);
 });
 
-async function initHomePage() {
-  const grid = document.querySelector("#product-grid");
-  if (!grid) return;
-
+// ===== دالة مساعدة لجلب المنتجات (تستخدم في كل الصفحات) =====
+async function fetchProducts() {
+  if (PRODUCTS.length > 0) return; // إذا كانت موجودة مسبقاً لا تجلبها مرة أخرى
   try {
     const response = await fetch(API_URL);
     if (!response.ok) throw new Error('Failed to fetch products');
     PRODUCTS = await response.json();
   } catch (err) {
     console.error('Error loading products:', err);
+    PRODUCTS = [];
+  }
+}
+
+async function initHomePage() {
+  const grid = document.querySelector("#product-grid");
+  if (!grid) return;
+
+  await fetchProducts();
+  if (PRODUCTS.length === 0) {
     grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>تعذر تحميل المنتجات. حاول مرة أخرى لاحقاً.</p></div>`;
     return;
   }
@@ -213,9 +222,12 @@ function initCategoriesPage() {
   });
 }
 
-function initProductPage() {
+async function initProductPage() {
   const wrap = document.querySelector("#product-detail");
   if (!wrap) return;
+
+  // إذا كانت المنتجات غير محملة، نقوم بجلبها
+  await fetchProducts();
 
   const params = new URLSearchParams(location.search);
   const id = params.get("id") || (PRODUCTS.length > 0 ? PRODUCTS[0].id : null);
@@ -319,8 +331,14 @@ function markActiveNav() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   markActiveNav();
+  
+  // قبل أي شيء، نجلب المنتجات مرة واحدة إذا كنا في صفحة المنتج أو الرئيسية
+  if (window.location.pathname.includes('product.html') || window.location.pathname.endsWith('/') || window.location.pathname.endsWith('index.html')) {
+    await fetchProducts();
+  }
+  
   initHomePage();
   initOffersPage();
   initCategoriesPage();
