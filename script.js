@@ -5,7 +5,7 @@
 let PRODUCTS = [];
 const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 
-// ===== تنسيق العملة (تم التعديل ليكون مثل أمازون تماماً) =====
+// ===== تنسيق العملة (تم ضبطه ليكون مثل أمازون 100%) =====
 (function addCurrencyStyle() {
   const style = document.createElement('style');
   style.textContent = `
@@ -25,9 +25,9 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
         font-weight: 800; 
         font-size: inherit; 
     }
-    /* تم تصغير الحجم ورفع النقطة مع الـ 00 */
+    /* تم التعديل هنا: حجم صغير جداً، ورفع عالياً، والتصاق بالرقم */
     .price-decimal { 
-        font-size: 0.3em; 
+        font-size: 0.35em; 
         font-weight: 700; 
         vertical-align: super; 
         line-height: 0; 
@@ -48,14 +48,14 @@ function bestPrice(product) {
 }
 
 function money(n, currency = 'EGP') {
-  // نقوم بتنسيق الرقم لفصل الجزء الصحيح عن الجزء العشري
+  // تقسيم الرقم لجزء صحيح وجزء عشري (.00)
   const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const parts = formatted.split('.');
   const integerPart = parts[0];
   const decimalPart = parts.length > 1 ? parts[1] : '00';
 
   if (currency === 'EGP') {
-    // النقطة والـ 00 مع بعض مرفوعين فوق الرقم
+    // النقطة والـ 00 مع بعض مرفوعين فوق الرقم، تماماً مثل أمازون
     return `<span class="price-amount"><span class="currency-symbol">EGP</span><span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span></span>`;
   }
   return `<span class="price-amount"><span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span></span>`;
@@ -94,7 +94,6 @@ function productCardHTML(p) {
         </div>
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
         
-        <!-- السعر الحالي والأصلي بنفس التنسيق الصحيح -->
         <div class="price-wrapper">
           <div class="price-current">${money(best.price, currency)}</div>
           ${best.old > 0 ? `<div class="price-original">${money(best.old, currency)}</div>` : ''}
