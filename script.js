@@ -5,14 +5,34 @@
 let PRODUCTS = [];
 const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 
+// ===== إضافة تنسيق CSS لعملة (ج.م) بشكل ديناميكي =====
+(function addCurrencyStyle() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .price-number {
+      font-weight: 800;
+      font-size: inherit;
+    }
+    .currency-symbol {
+      font-size: 0.8em;
+      font-weight: 600;
+      margin-inline-start: 3px;
+      color: var(--text-dim, #8A7A6D);
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
 function bestPrice(product) {
   return product.stores.reduce((a, b) => (a.price < b.price ? a : b));
 }
 
 function money(n, currency = 'EGP') {
   const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  if (currency === 'EGP') return formatted + ' ج.م';
-  return '$' + formatted;
+  if (currency === 'EGP') {
+    return `<span class="price-number">${formatted}</span><span class="currency-symbol">ج.م</span>`;
+  }
+  return `<span class="currency-symbol">$</span><span class="price-number">${formatted}</span>`;
 }
 
 function discountPct(oldP, newP) {
@@ -37,7 +57,6 @@ function productCardHTML(p) {
   if (!p.stores || p.stores.length === 0) return '';
   const best = bestPrice(p);
   const pct = discountPct(best.old, best.price);
-  // افتراض أن العملة هي EGP ما لم يحدد خلاف ذلك
   const currency = p.currency || 'EGP';
   return `
     <article class="product-card" data-id="${p.id}">
@@ -87,7 +106,6 @@ async function fetchProducts() {
     const response = await fetch(API_URL);
     if (!response.ok) throw new Error('Failed to fetch products');
     PRODUCTS = await response.json();
-    // إضافة حقل العملة إذا لم يكن موجوداً
     PRODUCTS.forEach(p => {
       if (!p.currency) p.currency = 'EGP';
     });
