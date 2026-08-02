@@ -5,14 +5,14 @@
 let PRODUCTS = [];
 const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 
-// ===== تنسيق العملة (تم التعديل ليكون مثل أمازون تماماً) =====
+// ===== تنسيق العملة (تم التعديل ليطابق أمازون تماماً) =====
 (function addCurrencyStyle() {
   const style = document.createElement('style');
   style.textContent = `
+    .currency-symbol { font-size: 0.65em; font-weight: 600; color: var(--text-dim, #8A7A6D); margin-left: 3px; }
     .price-number { font-weight: 800; font-size: inherit; }
-    .currency-symbol { font-size: 0.8em; font-weight: 600; color: var(--text-dim, #8A7A6D); }
-    /* تنسيق الجزء العشري ليصغر ويرتفع للأعلى مثل أمازون */
-    .price-decimal { font-size: 0.55em; font-weight: 600; vertical-align: super; margin-left: 1px; line-height: 1; }
+    /* تم التعديل هنا: استخدام span مع vertical-align لإزالة المسافات الزائدة */
+    .price-decimal { font-size: 0.45em; font-weight: 700; vertical-align: text-top; line-height: 0.6; display: inline-block; }
     
     /* فصل السعرين */
     .price-wrapper { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 8px; }
@@ -27,17 +27,17 @@ function bestPrice(product) {
 }
 
 function money(n, currency = 'EGP') {
-  // نقوم بتنسيق الرقم لفصل الجزء الصحيح عن الجزء العشري
+  // تقسيم الرقم لجزء صحيح وجزء عشري
   const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const parts = formatted.split('.');
   const integerPart = parts[0];
   const decimalPart = parts.length > 1 ? parts[1] : '00';
 
   if (currency === 'EGP') {
-    // إرجاع HTML: EGP ثم الرقم الكبير ثم الجزء العشري الصغير
-    return `<span class="currency-symbol">EGP</span> <span class="price-number">${integerPart}</span><sup class="price-decimal">${decimalPart}</sup>`;
+    // إرجاع HTML مطابق لأمازون: EGP صغيرة، مسافة، الرقم الكبير، ثم 00 صغيرة ملاصقة
+    return `<span class="currency-symbol">EGP</span> <span class="price-number">${integerPart}</span><span class="price-decimal">${decimalPart}</span>`;
   }
-  return `<span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><sup class="price-decimal">${decimalPart}</sup>`;
+  return `<span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><span class="price-decimal">${decimalPart}</span>`;
 }
 
 function discountPct(oldP, newP) {
@@ -73,7 +73,7 @@ function productCardHTML(p) {
         </div>
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
         
-        <!-- السعر الأصلي رقم فقط -->
+        <!-- السعر الحالي والأصلي بنفس التنسيق -->
         <div class="price-wrapper">
           <div class="price-current">${money(best.price, currency)}</div>
           ${best.old > 0 ? `<div class="price-original">${money(best.old, currency)}</div>` : ''}
