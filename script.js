@@ -5,7 +5,7 @@
 let PRODUCTS = [];
 const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 
-// ===== تنسيق العملة (تم التعديل النهائي ليتوافق مع اتجاه العرض العربي) =====
+// ===== تنسيق العملة (تم التعديل ليكون مثل أمازون تماماً) =====
 (function addCurrencyStyle() {
   const style = document.createElement('style');
   style.textContent = `
@@ -16,20 +16,23 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
         white-space: nowrap; 
     }
     .currency-symbol { 
-        font-size: 0.7em; 
+        font-size: 0.65em; 
         font-weight: 600; 
         color: var(--text-dim, #8A7A6D); 
-        margin-right: 2px; 
+        margin-right: 3px; 
     }
     .price-number { 
         font-weight: 800; 
         font-size: inherit; 
     }
+    /* تم تصغير الحجم ورفع النقطة مع الـ 00 */
     .price-decimal { 
-        font-size: 0.4em; 
+        font-size: 0.3em; 
         font-weight: 700; 
         vertical-align: super; 
-        line-height: 1; 
+        line-height: 0; 
+        display: inline-block;
+        margin-left: 1px;
     }
     
     /* فصل السعرين في البطاقة */
@@ -52,7 +55,7 @@ function money(n, currency = 'EGP') {
   const decimalPart = parts.length > 1 ? parts[1] : '00';
 
   if (currency === 'EGP') {
-    // تم استخدام wrapping class مع أمر اتجاه اجباري (ltr) عشان يظهر بالشكل الصحيح في الموقع العربي
+    // النقطة والـ 00 مع بعض مرفوعين فوق الرقم
     return `<span class="price-amount"><span class="currency-symbol">EGP</span><span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span></span>`;
   }
   return `<span class="price-amount"><span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span></span>`;
