@@ -37,7 +37,15 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
     /* فصل السعرين في البطاقة */
     .price-wrapper { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 8px; }
     .price-current { font-size: 1.15rem; color: var(--good); }
-    .price-original { font-size: 0.85rem; color: var(--muted); text-decoration: line-through; }
+    
+    /* ضمان ظهور خط الشطب بوضوح على السعر الأصلي */
+    .price-original { 
+        font-size: 0.85rem; 
+        color: var(--muted); 
+        text-decoration: line-through !important; 
+        text-decoration-thickness: 1px;
+        text-decoration-color: inherit;
+    }
   `;
   document.head.appendChild(style);
 })();
@@ -46,7 +54,6 @@ function bestPrice(product) {
   return product.stores.reduce((a, b) => (a.price < b.price ? a : b));
 }
 
-// تم تعديل هذه الدالة لإضافة خيار isOriginal
 function money(n, currency = 'EGP', isOriginal = false) {
   const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const parts = formatted.split('.');
@@ -55,11 +62,11 @@ function money(n, currency = 'EGP', isOriginal = false) {
 
   let decimalHtml = '';
   if (isOriginal) {
-    // السعر الأصلي: الجزء العشري يكون بنفس حجم الرقم الطبيعي (لكي يمر خط الشطب بشكل متناسق)
+    // السعر الأصلي: يحتفظ بالنقطة (.00) ويمر عليه خط الشطب تلقائياً بسبب كلاس price-original
     decimalHtml = `<span class="price-number">.${decimalPart}</span>`;
   } else {
-    // السعر الحالي: الجزء العشري يكون بحجم متوسط ومرفوع قليلاً كما طلبت
-    decimalHtml = `<span class="price-decimal-medium">.${decimalPart}</span>`;
+    // السعر الحالي: شيل النقطة (. ) عشان يبقى 6,62000 مع حجم متوسط
+    decimalHtml = `<span class="price-decimal-medium">${decimalPart}</span>`;
   }
 
   if (currency === 'EGP') {
@@ -101,7 +108,6 @@ function productCardHTML(p) {
         </div>
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
         
-        <!-- تمرير false للسعر الحالي، و true للسعر الأصلي -->
         <div class="price-wrapper">
           <div class="price-current">${money(best.price, currency, false)}</div>
           ${best.old > 0 ? `<div class="price-original">${money(best.old, currency, true)}</div>` : ''}
