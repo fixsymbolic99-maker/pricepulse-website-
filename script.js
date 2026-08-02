@@ -346,6 +346,13 @@ async function initProductPage() {
   const ratingStars = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
   document.title = `${product.name} — PricePulse`;
 
+  // ===== عنوان المميزات حسب الفئة =====
+  let categoryTitle = 'مواصفات المنتج';
+  if (product.category === 'phones') categoryTitle = 'مواصفات الهاتف';
+  else if (product.category === 'watches') categoryTitle = 'مواصفات الساعة الذكية';
+  else if (product.category === 'accessories') categoryTitle = 'مواصفات الإكسسوارات';
+  else if (product.category === 'laptops') categoryTitle = 'مواصفات اللابتوب';
+
   wrap.innerHTML = `
     <div class="pd-hero">
       <div class="pd-image" aria-hidden="true">${product.icon}</div>
@@ -359,19 +366,14 @@ async function initProductPage() {
           ${best.old > 0 ? `<div class="price-original">${money(best.old, currency, true)}</div>` : ''}
         </div>
 
-        <!-- ===== تم إضافة المميزات هنا لصفحة المنتج ===== -->
-        ${product.features ? `
-          <div class="features-wrapper" style="margin: 16px 0; padding: 12px 16px; background: var(--surface-2); border-radius: var(--radius-xs); border: 1px solid var(--border-soft);">
-            <h4 style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 8px;">المميزات الرئيسية</h4>
-            <p style="font-size: 0.95rem; line-height: 1.7; color: var(--text); white-space: pre-wrap;">${product.features}</p>
-          </div>
-        ` : ''}
+        <!-- تم حذف المميزات من هنا -->
 
         <button class="btn cheapest-btn" data-id="${product.id}" type="button" style="width:auto; padding:12px 22px;">
           احصل على أفضل سعر — ${best.name}
         </button>
       </div>
     </div>
+
     <div class="section-title"><h2>قارن الأسعار عبر المتاجر</h2></div>
     <div class="info-card" style="padding:0; overflow-x:auto;">
       <table class="compare-table" style="width: 100%; border-collapse: collapse; text-align: center;">
@@ -403,6 +405,14 @@ async function initProductPage() {
         </tbody>
       </table>
     </div>
+
+    <!-- ===== تم نقل المميزات إلى هنا (أسفل الجدول، ستظهر تحت الإعلانات في ملف product.html) ===== -->
+    ${product.features ? `
+      <div class="features-wrapper" style="margin-top: 32px; padding: 20px; background: var(--surface); border-radius: var(--radius-md); border: 1px solid var(--border-soft); box-shadow: var(--shadow-card);">
+        <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 12px;">${categoryTitle}</h4>
+        <p style="font-size: 0.95rem; line-height: 1.8; color: var(--text-dim); white-space: pre-wrap;">${product.features}</p>
+      </div>
+    ` : ''}
   `;
 }
 
