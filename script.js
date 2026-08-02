@@ -5,7 +5,7 @@
 let PRODUCTS = [];
 const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 
-// ===== تنسيق العملة (تم التعديل النهائي لضمان ظهور خط الشطب) =====
+// ===== تنسيق العملة (تم التعديل النهائي لفصل خط الشطب عن EGP) =====
 (function addCurrencyStyle() {
   const style = document.createElement('style');
   style.textContent = `
@@ -25,7 +25,7 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
         font-size: inherit; 
     }
     
-    /* حجم متوسط ومرفوع للسعر الحالي (بدون نقطة) */
+    /* السعر الحالي: حجم متوسط ومرفوع (بدون نقطة) */
     .price-decimal-medium { 
         font-size: 0.65em; 
         font-weight: 700; 
@@ -34,24 +34,24 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
         display: inline-block;
         margin-left: 1px;
     }
+
+    /* حاوية السعر الأصلي */
+    .price-original { 
+        font-size: 0.85rem; 
+        color: var(--muted); 
+        display: inline-block;
+    }
+
+    /* هذا الكلاس يطبق خط الشطب على الرقم فقط */
+    .price-original-number {
+        text-decoration: line-through !important;
+        font-weight: 800;
+        font-size: inherit;
+    }
     
     /* فصل السعرين في البطاقة */
     .price-wrapper { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 8px; }
     .price-current { font-size: 1.15rem; color: var(--good); }
-    
-    /* تعديل حاسم: ضمان ظهور خط الشطب فوق السعر الأصلي */
-    .price-original { 
-        font-size: 0.85rem; 
-        color: var(--muted); 
-        text-decoration: line-through !important; 
-        text-decoration-thickness: 1.5px !important; /* زيادة سمك الخط قليلاً */
-        display: inline-block; 
-    }
-    /* توريث الخط للأجزاء الداخلية كإجراء احترازي */
-    .price-original .price-amount,
-    .price-original .price-number {
-        text-decoration: line-through !important;
-    }
   `;
   document.head.appendChild(style);
 })();
@@ -66,19 +66,21 @@ function money(n, currency = 'EGP', isOriginal = false) {
   const integerPart = parts[0];
   const decimalPart = parts[1] || '00';
 
-  let decimalHtml = '';
-  if (isOriginal) {
-    // السعر الأصلي (7,030.00): يحتفظ بالنقطة، ويتم تطبيق الشطب عليه تلقائياً من كلاس price-original
-    decimalHtml = `<span class="price-number">.${decimalPart}</span>`;
-  } else {
-    // السعر الحالي (6,62000): شيل النقطة، الـ 00 تكون مرفوعة بحجم متوسط
-    decimalHtml = `<span class="price-decimal-medium">${decimalPart}</span>`;
-  }
-
   if (currency === 'EGP') {
-    return `<span class="price-amount"><span class="currency-symbol">EGP</span><span class="price-number">${integerPart}</span>${decimalHtml}</span>`;
+    if (isOriginal) {
+      // السعر الأصلي: EGP خارج التزيين، والرقم فقط عليه خط
+      return `<span class="price-amount"><span class="currency-symbol" style="text-decoration: none;">EGP</span> <span class="price-original-number">${integerPart}.${decimalPart}</span></span>`;
+    } else {
+      // السعر الحالي: بدون نقطة، والـ 00 مرفوعة
+      return `<span class="price-amount"><span class="currency-symbol">EGP</span><span class="price-number">${integerPart}</span><span class="price-decimal-medium">${decimalPart}</span></span>`;
+    }
   }
-  return `<span class="price-amount"><span class="currency-symbol">$</span><span class="price-number">${integerPart}</span>${decimalHtml}</span>`;
+  
+  // حالات العملة الأخرى
+  if (isOriginal) {
+    return `<span class="price-amount"><span class="currency-symbol" style="text-decoration: none;">$</span> <span class="price-original-number">${integerPart}.${decimalPart}</span></span>`;
+  }
+  return `<span class="price-amount"><span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><span class="price-decimal-medium">${decimalPart}</span></span>`;
 }
 
 function discountPct(oldP, newP) {
@@ -357,7 +359,7 @@ async function initProductPage() {
     <div class="info-card" style="padding:0; overflow-x:auto;">
       <table class="compare-table">
         <thead>
-          <tr><th>المتجر</th><th>السعر</th><th>السعر الأصلي</th><th>الرابط</th></tr>
+          <tr><th>المتجر</th><th>السعر</th><th>الرابط</th></tr>
         </thead>
         <tbody>
           ${sortedStores
@@ -366,7 +368,6 @@ async function initProductPage() {
             <tr class="${i === 0 ? "row-best" : ""}">
               <td>${s.name}${i === 0 ? " 🏆" : ""}</td>
               <td>${money(s.price, currency, false)}</td>
-              <td class="price-old">${s.old > 0 ? money(s.old, currency, true) : '—'}</td>
               <td>
                 ${s.url ? `<a href="${s.url}" target="_blank" class="btn small ghost" style="text-decoration:none;">زيارة المتجر</a>` : `<span style="color:var(--muted);">لا يوجد رابط</span>`}
               </td>
