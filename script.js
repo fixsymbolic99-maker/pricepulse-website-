@@ -5,14 +5,22 @@
 let PRODUCTS = [];
 const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 
-// ===== تنسيق العملة (تم التعديل ليطابق أمازون تماماً) =====
+// ===== تنسيق العملة (تم التعديل ليكون مثل أمازون تماماً) =====
 (function addCurrencyStyle() {
   const style = document.createElement('style');
   style.textContent = `
-    .currency-symbol { font-size: 0.65em; font-weight: 600; color: var(--text-dim, #8A7A6D); margin-left: 3px; }
+    .currency-symbol { font-size: 0.75em; font-weight: 600; color: var(--text-dim, #8A7A6D); margin-left: 2px; }
     .price-number { font-weight: 800; font-size: inherit; }
-    /* تم التعديل هنا: استخدام span مع vertical-align لإزالة المسافات الزائدة */
-    .price-decimal { font-size: 0.45em; font-weight: 700; vertical-align: text-top; line-height: 0.6; display: inline-block; }
+    
+    /* تنسيق الجزء العشري ليظهر صغيراً ومرفوعاً مثل 6,620.⁰⁰ */
+    .price-decimal {
+        font-size: 0.45em;
+        font-weight: 700;
+        vertical-align: text-top;
+        display: inline-block;
+        line-height: 1;
+        margin-left: -1px; /* لتقريبها للرقم الأساسي */
+    }
     
     /* فصل السعرين */
     .price-wrapper { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 8px; }
@@ -27,17 +35,17 @@ function bestPrice(product) {
 }
 
 function money(n, currency = 'EGP') {
-  // تقسيم الرقم لجزء صحيح وجزء عشري
+  // نقوم بتنسيق الرقم لفصل الجزء الصحيح عن الجزء العشري
   const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const parts = formatted.split('.');
   const integerPart = parts[0];
   const decimalPart = parts.length > 1 ? parts[1] : '00';
 
+  // هنا التغيير المهم: ضم النقطة (.) مع الـ 00 داخل نفس الكلاس الصغير
   if (currency === 'EGP') {
-    // إرجاع HTML مطابق لأمازون: EGP صغيرة، مسافة، الرقم الكبير، ثم 00 صغيرة ملاصقة
-    return `<span class="currency-symbol">EGP</span> <span class="price-number">${integerPart}</span><span class="price-decimal">${decimalPart}</span>`;
+    return `<span class="currency-symbol">EGP</span> <span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span>`;
   }
-  return `<span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><span class="price-decimal">${decimalPart}</span>`;
+  return `<span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span>`;
 }
 
 function discountPct(oldP, newP) {
@@ -302,7 +310,6 @@ async function initProductPage() {
           <span style="color:var(--muted); font-weight:600; font-size:.85rem;">(${product.reviews} تقييم)</span>
         </div>
         
-        <!-- السعر الأصلي رقم فقط هنا أيضاً -->
         <div class="price-wrapper">
           <div class="price-current" style="font-size:1.7rem;">${money(best.price, currency)}</div>
           ${best.old > 0 ? `<div class="price-original">${money(best.old, currency)}</div>` : ''}
