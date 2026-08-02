@@ -370,8 +370,10 @@ async function initProductPage() {
             .map(
               (s, i) => `
             <tr class="${i === 0 ? "row-best" : ""}" style="border-bottom: 1px solid var(--border-soft);">
-              <!-- تم إضافة white-space: nowrap و direction: ltr لمنع نزول الرقم لسطر منفصل -->
-              <td style="text-align: center; padding: 15px 10px; vertical-align: middle; white-space: nowrap; direction: ltr;">${i + 1}. ${s.name}</td>
+              <!-- تم تعديل الاتجاه إلى RTL ووضع الرقم بعد الاسم ليظهر على يمين المتجر -->
+              <td style="text-align: center; padding: 15px 10px; vertical-align: middle; direction: rtl;">
+                <span>${s.name}</span> <span style="font-weight: bold; color: var(--accent, #8A7A6D);">${i + 1}</span>
+              </td>
               <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">${money(s.price, currency, false)}</td>
               <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">
                 ${s.url ? `<a href="${s.url}" target="_blank" class="btn small ghost" style="display: inline-block; text-decoration:none; margin: 0 auto;">زيارة المتجر</a>` : `<span style="color:var(--muted);">لا يوجد رابط</span>`}
