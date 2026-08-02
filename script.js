@@ -346,10 +346,11 @@ async function initProductPage() {
               (s, i) => `
             <tr class="${i === 0 ? "row-best" : ""}" style="border-bottom: 1px solid var(--border-soft);">
               <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">
-                <!-- تم إزالة الشارة الدائرية، وتم تثبيت عرض الرقم ليظهر بجانب الاسم بمسافة ثابتة ومتساوية -->
                 <div style="display: flex; align-items: center; justify-content: center; direction: ltr;">
-                  <span style="font-weight: 600; color: var(--text);">${s.name}</span>
-                  <span style="display: inline-block; width: 1.2em; text-align: center; font-weight: 700; margin-left: 8px;">${i + 1}</span>
+                  <!-- المتجر الأول لونه أخضر، والباقي عادي -->
+                  <span style="font-weight: 600; color: ${i === 0 ? 'var(--good)' : 'var(--text)'};">${s.name}</span>
+                  <!-- تم تثبيت عرض الرقم (min-width) لضمان المحاذاة العمودية بالضبط -->
+                  <span style="display: inline-block; min-width: 1.5em; text-align: center; font-weight: 700; margin-left: 8px; color: ${i === 0 ? 'var(--good)' : 'var(--text)'};">${i + 1}</span>
                 </div>
               </td>
               <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">${money(s.price || product.price, currency, false)}</td>
