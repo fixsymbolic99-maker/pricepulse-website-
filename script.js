@@ -15,10 +15,10 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
         white-space: nowrap; 
     }
     .currency-symbol { 
-        font-size: 0.65em; 
+        font-size: 1em; /* تم التعديل هنا: نفس حجم الرقم */
         font-weight: 600; 
         color: var(--text-dim, #8A7A6D); 
-        margin-right: 2px; 
+        margin-right: 0px; /* تم إزالة المسافة */
     }
     .price-number { 
         font-weight: 800; 
@@ -55,21 +55,22 @@ function bestPrice(product) {
   return product.stores.reduce((a, b) => (a.price < b.price ? a : b));
 }
 
-function money(n, currency = 'USD', isOriginal = false) { // تغيير EGP إلى USD
+function money(n, currency = 'USD', isOriginal = false) {
   const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const parts = formatted.split('.');
   const integerPart = parts[0];
   const decimalPart = parts[1] || '00';
 
-  if (currency === 'USD' || currency === 'EGP') { // قبول USD و EGP، ولكن العرض سيكون $
+  // إزالة المسافات تماماً من الـ HTML لضمان الالتصاق
+  if (currency === 'USD' || currency === 'EGP') {
     if (isOriginal) {
-      return `<span class="price-amount"><span class="currency-symbol" style="text-decoration: none;">$</span> <span class="price-original-number">${integerPart}.${decimalPart}</span></span>`;
+      return `<span class="price-amount"><span class="currency-symbol" style="text-decoration: none;">$</span><span class="price-original-number">${integerPart}.${decimalPart}</span></span>`;
     } else {
       return `<span class="price-amount"><span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><span class="price-decimal-medium">${decimalPart}</span></span>`;
     }
   }
   if (isOriginal) {
-    return `<span class="price-amount"><span class="currency-symbol" style="text-decoration: none;">$</span> <span class="price-original-number">${integerPart}.${decimalPart}</span></span>`;
+    return `<span class="price-amount"><span class="currency-symbol" style="text-decoration: none;">$</span><span class="price-original-number">${integerPart}.${decimalPart}</span></span>`;
   }
   return `<span class="price-amount"><span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><span class="price-decimal-medium">${decimalPart}</span></span>`;
 }
@@ -95,7 +96,7 @@ function showToast(msg) {
 function productCardHTML(p) {
   const best = bestPrice(p);
   const pct = discountPct(best.old, best.price);
-  const currency = p.currency || 'USD'; // تغيير EGP إلى USD
+  const currency = p.currency || 'USD';
   const storeTags = p.stores && p.stores.length > 0 
     ? p.stores.map(s => `<span class="store-tag">${s.name}</span>`).join(' ') 
     : '';
@@ -142,7 +143,7 @@ document.addEventListener("click", (e) => {
   const product = PRODUCTS.find((p) => p.id === btn.dataset.id);
   if (!product) return;
   const best = bestPrice(product);
-  const currency = product.currency || 'USD'; // تغيير EGP إلى USD
+  const currency = product.currency || 'USD';
   showToast(`أفضل سعر لـ ${product.name}: ${money(best.price, currency, false)} من ${best.name}`);
 });
 
@@ -153,7 +154,7 @@ async function fetchProducts() {
     if (!response.ok) throw new Error('Failed to fetch products');
     PRODUCTS = await response.json();
     PRODUCTS.forEach(p => {
-      if (!p.currency) p.currency = 'USD'; // تغيير EGP إلى USD
+      if (!p.currency) p.currency = 'USD';
     });
   } catch (err) {
     console.error('Error loading products:', err);
@@ -161,7 +162,6 @@ async function fetchProducts() {
   }
 }
 
-// ... (باقي الدوال كما هي، حيث ستأخذ العملة الافتراضية من الدالة money التي تم تعديلها)
 async function initHomePage() {
   const grid = document.querySelector("#product-grid");
   if (!grid) return;
@@ -323,7 +323,7 @@ async function initProductPage() {
   const sortedStores = product.stores && product.stores.length > 0
     ? [...product.stores].sort((a, b) => a.price - b.price)
     : [{ name: product.storeId || 'Store', price: product.price, url: '' }];
-  const currency = product.currency || 'USD'; // تغيير EGP إلى USD
+  const currency = product.currency || 'USD';
   const rating = product.rating || 0;
   const reviews = product.reviews || 0;
   const roundedRating = Math.round(rating);
