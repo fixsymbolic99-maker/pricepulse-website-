@@ -66,9 +66,15 @@
 <script>
   function sendEmail(e) {
     e.preventDefault(); 
-    var name = document.getElementById('name').value.trim();
-    var email = document.getElementById('email').value.trim();
-    var message = document.getElementById('message').value.trim();
+    
+    // استهداف الحقول
+    var nameInput = document.getElementById('name');
+    var emailInput = document.getElementById('email');
+    var messageInput = document.getElementById('message');
+
+    var name = nameInput.value.trim();
+    var email = emailInput.value.trim();
+    var message = messageInput.value.trim();
 
     if (!name || !email || !message) {
       alert("يرجى ملء جميع الحقول.");
@@ -76,8 +82,6 @@
     }
 
     var subject = encodeURIComponent("اتصال من موقع PricePulse");
-    
-    // تم تحسين شكل الرسالة ليكون مرتباً أكثر
     var body = encodeURIComponent(
       "المرسل: " + name + "\n" +
       "للرد: " + email + "\n\n" +
@@ -85,7 +89,13 @@
       "الرسالة:\n" + message
     );
 
+    // فتح البريد الإلكتروني
     window.location.href = "mailto:tyko7.2026@gmail.com?subject=" + subject + "&body=" + body;
+    
+    // مسح الحقول فوراً بعد الإرسال
+    nameInput.value = '';
+    emailInput.value = '';
+    messageInput.value = '';
   }
 </script>
 <script src="script.js"></script>
