@@ -129,7 +129,7 @@ function renderGrid(container, products) {
     container.innerHTML = `
       <div class="empty-state">
         <div class="icon">🔍</div>
-        <p>لا توجد منتجات مطابقة.</p>
+        <p>لا توجد نتائج مطابقة.</p>
       </div>`;
     return;
   }
@@ -235,7 +235,7 @@ async function initHomePage() {
   }
 }
 
-// ===== تم إصلاح دالة صفحة العروض =====
+// ===== إصلاح صفحة العروض + أزرار الفرز =====
 function initOffersPage() {
   const grid = document.querySelector("#offers-grid");
   if (!grid) return;
@@ -245,12 +245,10 @@ function initOffersPage() {
     return;
   }
 
-  const withDiscount = PRODUCTS.filter(p => discountPct(bestPrice(p).old, bestPrice(p).price) > 0)
-    .sort((a, b) => discountPct(bestPrice(b).old, bestPrice(b).price) - discountPct(bestPrice(a).old, bestPrice(a).price));
-
-  let list = withDiscount;
+  // تصفية المنتجات التي تحتوي على خصم حقيقي > 0%
+  let list = PRODUCTS.filter(p => discountPct(bestPrice(p).old, bestPrice(p).price) > 0);
   
-  // إذا مفيش منتجات فيها خصم، اعرض جميع المنتجات العادية
+  // إذا كان هناك منتجات بها خصم، اعرضها. وإلا اعرض رسالة عدم وجود عروض
   if (list.length === 0) {
     grid.innerHTML = `
       <div class="empty-state" style="padding: 40px;">
@@ -259,16 +257,20 @@ function initOffersPage() {
         <p style="font-size: 0.9rem; color: var(--text-dim);">ستظهر المنتجات هنا عند إضافة خصومات لها.</p>
       </div>
     `;
-    // إخفاء الأزرار أو عدم تفعيلها إذا مفيش منتجات
+    // تعطيل الأزرار إذا لم يوجد عروض
     const chips = document.querySelectorAll(".chip");
     chips.forEach(c => c.style.opacity = "0.5");
     return;
   }
 
-  // عرض المنتجات وتمكين الأزرار
+  // تمكين الأزرار وإظهار المنتجات
+  const chips = document.querySelectorAll(".chip[data-sort]");
+  chips.forEach(c => c.style.opacity = "1");
+  
+  // ترتيب افتراضي: الأعلى خصم
+  list.sort((a, b) => discountPct(bestPrice(b).old, bestPrice(b).price) - discountPct(bestPrice(a).old, bestPrice(a).price));
   renderGrid(grid, list);
 
-  const chips = document.querySelectorAll(".chip[data-sort]");
   chips.forEach((chip) => {
     chip.addEventListener("click", () => {
       chips.forEach((c) => c.classList.remove("active"));
@@ -289,19 +291,17 @@ function initOffersPage() {
   });
 }
 
-// ===== تم إصلاح دالة صفحة الأقسام =====
+// ===== إصلاح صفحة الأقسام =====
 function initCategoriesPage() {
   const wrap = document.querySelector("#category-counts");
   if (!wrap) return;
   if (PRODUCTS.length === 0) return;
   
-  // حساب عدد المنتجات لكل قسم بناءً على البيانات الحقيقية
   wrap.querySelectorAll(".cat-card").forEach((card) => {
     const cat = card.dataset.category;
     const count = PRODUCTS.filter((p) => p.category === cat).length;
     const countEl = card.querySelector(".count");
     if (countEl) {
-      // تحديث النص ليظهر العدد الحقيقي
       countEl.textContent = `${count} منتج`;
     }
   });
