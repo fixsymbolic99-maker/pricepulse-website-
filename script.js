@@ -10,29 +10,28 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
   const style = document.createElement('style');
   style.textContent = `
     .price-amount { 
-        display: inline-flex; 
-        align-items: baseline; 
         direction: ltr; 
+        display: inline-block; 
         white-space: nowrap; 
     }
     .currency-symbol { 
-        font-size: 0.65em; 
+        font-size: 0.6em; 
         font-weight: 600; 
         color: var(--text-dim, #8A7A6D); 
-        margin-right: 3px; 
+        margin-right: 2px; 
     }
     .price-number { 
         font-weight: 800; 
         font-size: inherit; 
     }
-    /* تم التعديل هنا: حجم صغير جداً، ورفع عالياً، والتصاق بالرقم */
+    /* الكود السري لشكل أمازون: تصغير الجزء العشري ورفعه عالياً مع النقطة */
     .price-decimal { 
-        font-size: 0.35em; 
+        font-size: 0.4em; 
         font-weight: 700; 
         vertical-align: super; 
         line-height: 0; 
         display: inline-block;
-        margin-left: 1px;
+        margin-left: -0.02em; /* إزالة الفراغ بين الرقم والجزء العشري */
     }
     
     /* فصل السعرين في البطاقة */
@@ -48,14 +47,14 @@ function bestPrice(product) {
 }
 
 function money(n, currency = 'EGP') {
-  // تقسيم الرقم لجزء صحيح وجزء عشري (.00)
+  // تقسيم الرقم لجزء صحيح وجزء عشري (مثل 15,569.00)
   const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const parts = formatted.split('.');
   const integerPart = parts[0];
   const decimalPart = parts.length > 1 ? parts[1] : '00';
 
   if (currency === 'EGP') {
-    // النقطة والـ 00 مع بعض مرفوعين فوق الرقم، تماماً مثل أمازون
+    // عرض EGP، مسافة، الرقم، ثم .00 مرفوعة على بعضها
     return `<span class="price-amount"><span class="currency-symbol">EGP</span><span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span></span>`;
   }
   return `<span class="price-amount"><span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span></span>`;
