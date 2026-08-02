@@ -5,12 +5,14 @@
 let PRODUCTS = [];
 const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 
-// ===== تنسيق العملة (تم التعديل ليكون مثل أمازون) =====
+// ===== تنسيق العملة (تم التعديل ليكون مثل أمازون تماماً) =====
 (function addCurrencyStyle() {
   const style = document.createElement('style');
   style.textContent = `
     .price-number { font-weight: 800; font-size: inherit; }
     .currency-symbol { font-size: 0.8em; font-weight: 600; color: var(--text-dim, #8A7A6D); }
+    /* تنسيق الجزء العشري ليصغر ويرتفع للأعلى مثل أمازون */
+    .price-decimal { font-size: 0.55em; font-weight: 600; vertical-align: super; margin-left: 1px; line-height: 1; }
     
     /* فصل السعرين */
     .price-wrapper { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 8px; }
@@ -25,12 +27,17 @@ function bestPrice(product) {
 }
 
 function money(n, currency = 'EGP') {
-  // تم التعديل هنا: إضافة .00 وتغيير EGP لتكون قبل الرقم
+  // نقوم بتنسيق الرقم لفصل الجزء الصحيح عن الجزء العشري
   const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const parts = formatted.split('.');
+  const integerPart = parts[0];
+  const decimalPart = parts.length > 1 ? parts[1] : '00';
+
   if (currency === 'EGP') {
-    return `<span class="currency-symbol">EGP</span> <span class="price-number">${formatted}</span>`;
+    // إرجاع HTML: EGP ثم الرقم الكبير ثم الجزء العشري الصغير
+    return `<span class="currency-symbol">EGP</span> <span class="price-number">${integerPart}</span><sup class="price-decimal">${decimalPart}</sup>`;
   }
-  return `<span class="currency-symbol">$</span><span class="price-number">${formatted}</span>`;
+  return `<span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><sup class="price-decimal">${decimalPart}</sup>`;
 }
 
 function discountPct(oldP, newP) {
