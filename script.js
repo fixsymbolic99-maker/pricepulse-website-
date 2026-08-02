@@ -1,15 +1,9 @@
 /* =========================================================
-   PricePulse — Shared application logic
+   PricePulse — Shared application logic (Arabic - Full)
    ========================================================= */
 
 let PRODUCTS = [];
-
-const CATEGORY_LABELS = {
-  phones: "Phones",
-  watches: "Smartwatches",
-  accessories: "Accessories",
-  laptops: "Laptops",
-};
+const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 
 function bestPrice(product) {
   return product.stores.reduce((a, b) => (a.price < b.price ? a : b));
@@ -42,7 +36,7 @@ function productCardHTML(p) {
   const pct = discountPct(best.old, best.price);
   return `
     <article class="product-card" data-id="${p.id}">
-      ${pct > 0 ? `<span class="badge-drop">${pct}% OFF</span>` : ""}
+      ${pct > 0 ? `<span class="badge-drop">${pct}% خصم</span>` : ""}
       <div class="product-thumb" aria-hidden="true">${p.icon}</div>
       <div class="product-body">
         <div class="store-list">
@@ -53,7 +47,7 @@ function productCardHTML(p) {
           <span class="price-old">${money(best.old)}</span>
           <span class="price-new">${money(best.price)}</span>
         </div>
-        <button class="btn cheapest-btn" data-id="${p.id}" type="button">Best Price</button>
+        <button class="btn cheapest-btn" data-id="${p.id}" type="button">أفضل سعر</button>
       </div>
     </article>
   `;
@@ -65,7 +59,7 @@ function renderGrid(container, products) {
     container.innerHTML = `
       <div class="empty-state">
         <div class="icon">🔍</div>
-        <p>No matching results found.</p>
+        <p>لا توجد نتائج مطابقة.</p>
       </div>`;
     return;
   }
@@ -78,21 +72,20 @@ document.addEventListener("click", (e) => {
   const product = PRODUCTS.find((p) => p.id === btn.dataset.id);
   if (!product) return;
   const best = bestPrice(product);
-  showToast(`Best price for ${product.name}: ${money(best.price)} from ${best.name}`);
+  showToast(`أفضل سعر لـ ${product.name}: ${money(best.price)} من ${best.name}`);
 });
 
-// ===== التعديل الرئيسي: جلب البيانات من السيرفر =====
 async function initHomePage() {
   const grid = document.querySelector("#product-grid");
   if (!grid) return;
 
   try {
-    const response = await fetch('/api/public/products');
+    const response = await fetch(API_URL);
     if (!response.ok) throw new Error('Failed to fetch products');
     PRODUCTS = await response.json();
   } catch (err) {
     console.error('Error loading products:', err);
-    grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Unable to load products. Please try again later.</p></div>`;
+    grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>تعذر تحميل المنتجات. حاول مرة أخرى لاحقاً.</p></div>`;
     return;
   }
 
@@ -175,7 +168,7 @@ function initOffersPage() {
   if (!grid) return;
 
   if (PRODUCTS.length === 0) {
-    grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>No products available.</p></div>`;
+    grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>لا توجد منتجات متاحة.</p></div>`;
     return;
   }
 
@@ -216,7 +209,7 @@ function initCategoriesPage() {
     const cat = card.dataset.category;
     const count = PRODUCTS.filter((p) => p.category === cat).length;
     const countEl = card.querySelector(".count");
-    if (countEl) countEl.textContent = `${count} Products`;
+    if (countEl) countEl.textContent = `${count} منتج`;
   });
 }
 
@@ -228,7 +221,7 @@ function initProductPage() {
   const id = params.get("id") || (PRODUCTS.length > 0 ? PRODUCTS[0].id : null);
   
   if (!id || PRODUCTS.length === 0) {
-    wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Product not found.</p></div>`;
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>المنتج غير موجود.</p></div>`;
     return;
   }
 
@@ -244,7 +237,7 @@ function initProductPage() {
 
   const product = PRODUCTS.find((p) => p.id === id);
   if (!product) {
-    wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Product not found.</p></div>`;
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>المنتج غير موجود.</p></div>`;
     return;
   }
 
@@ -258,24 +251,24 @@ function initProductPage() {
       <div class="pd-image" aria-hidden="true">${product.icon}</div>
       <div class="pd-info">
         <h1>${product.name}</h1>
-        <div class="stars" aria-label="Rating ${product.rating} out of 5">${"★".repeat(Math.round(product.rating))}${"☆".repeat(5 - Math.round(product.rating))}
-          <span style="color:var(--muted); font-weight:600; font-size:.85rem;">(${product.reviews} reviews)</span>
+        <div class="stars" aria-label="التقييم ${product.rating} من 5">${"★".repeat(Math.round(product.rating))}${"☆".repeat(5 - Math.round(product.rating))}
+          <span style="color:var(--muted); font-weight:600; font-size:.85rem;">(${product.reviews} تقييم)</span>
         </div>
         <div class="price-row">
           <span class="price-old">${money(best.old)}</span>
           <span class="price-new">${money(best.price)}</span>
         </div>
         <button class="btn cheapest-btn" data-id="${product.id}" type="button" style="width:auto; padding:12px 22px;">
-          Get Best Price — ${best.name}
+          احصل على أفضل سعر — ${best.name}
         </button>
       </div>
     </div>
 
-    <div class="section-title"><h2>Compare Prices Across Stores</h2></div>
+    <div class="section-title"><h2>قارن الأسعار عبر المتاجر</h2></div>
     <div class="info-card" style="padding:0; overflow-x:auto;">
       <table class="compare-table">
         <thead>
-          <tr><th>Store</th><th>Price</th><th>List Price</th><th></th></tr>
+          <tr><th>المتجر</th><th>السعر</th><th>السعر الأصلي</th><th></th></tr>
         </thead>
         <tbody>
           ${sortedStores
@@ -285,7 +278,7 @@ function initProductPage() {
               <td>${s.name}${i === 0 ? " 🏆" : ""}</td>
               <td>${money(s.price)}</td>
               <td class="price-old">${money(s.old)}</td>
-              <td><button class="btn small ghost visit-store-btn" type="button" data-store="${s.name}">Visit Store</button></td>
+              <td><button class="btn small ghost visit-store-btn" type="button" data-store="${s.name}">زيارة المتجر</button></td>
             </tr>`
             )
             .join("")}
@@ -299,25 +292,23 @@ function initContactForm() {
   const form = document.querySelector("#contact-form");
   if (!form) return;
   form.addEventListener("submit", (e) => {
-    e.preventDefault();
     const name = form.querySelector("#name").value.trim();
     const email = form.querySelector("#email").value.trim();
     const message = form.querySelector("#message").value.trim();
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
     if (!name || !emailOk || !message) {
-      showToast("Please make sure all fields are filled out correctly.");
+      e.preventDefault();
+      showToast("يرجى التأكد من ملء جميع الحقول بشكل صحيح.");
       return;
     }
-    showToast("Your message has been sent successfully. We will get back to you soon.");
-    form.reset();
+    showToast("سيتم فتح بريدك الإلكتروني لإرسال الرسالة.");
   });
 }
 
 document.addEventListener("click", (e) => {
   const btn = e.target.closest(".visit-store-btn");
   if (!btn) return;
-  showToast(`Redirecting to ${btn.dataset.store}...`);
+  showToast(`سيتم توجيهك إلى ${btn.dataset.store}...`);
 });
 
 function markActiveNav() {
@@ -343,11 +334,7 @@ document.addEventListener("click", function(e) {
     const href = link.getAttribute("href");
     if (!href) return;
     if (href.startsWith("http") || href.startsWith("#") || href.startsWith("javascript:")) return;
-
-    if (href.startsWith("product.html")) {
-        return;
-    }
-
+    if (href.startsWith("product.html")) return;
     e.preventDefault();
     window.location.replace(href);
 });
