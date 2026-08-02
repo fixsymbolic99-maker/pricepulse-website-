@@ -124,7 +124,6 @@ function productCardHTML(p) {
         <div class="store-list">${storeTags}</div>
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
         
-        <!-- ===== تم إضافة عرض المميزات هنا ===== -->
         ${p.features ? `<div class="product-card-features">${p.features}</div>` : ''}
         
         <div class="stars" style="margin-bottom: 6px; font-size: 0.85rem;">
@@ -362,9 +361,9 @@ async function initProductPage() {
 
         <!-- ===== تم إضافة المميزات هنا لصفحة المنتج ===== -->
         ${product.features ? `
-          <div class="features-wrapper" style="margin: 12px 0; padding: 10px; background: var(--surface-2); border-radius: var(--radius-xs); border: 1px solid var(--border-soft);">
-            <h4 style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 4px;">المميزات</h4>
-            <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text); white-space: pre-wrap;">${product.features}</p>
+          <div class="features-wrapper" style="margin: 16px 0; padding: 12px 16px; background: var(--surface-2); border-radius: var(--radius-xs); border: 1px solid var(--border-soft);">
+            <h4 style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 8px;">المميزات الرئيسية</h4>
+            <p style="font-size: 0.95rem; line-height: 1.7; color: var(--text); white-space: pre-wrap;">${product.features}</p>
           </div>
         ` : ''}
 
