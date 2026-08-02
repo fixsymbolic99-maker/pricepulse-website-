@@ -75,9 +75,8 @@ document.addEventListener("click", (e) => {
   showToast(`أفضل سعر لـ ${product.name}: ${money(best.price)} من ${best.name}`);
 });
 
-// ===== دالة مساعدة لجلب المنتجات (تستخدم في كل الصفحات) =====
 async function fetchProducts() {
-  if (PRODUCTS.length > 0) return; // إذا كانت موجودة مسبقاً لا تجلبها مرة أخرى
+  if (PRODUCTS.length > 0) return;
   try {
     const response = await fetch(API_URL);
     if (!response.ok) throw new Error('Failed to fetch products');
@@ -226,7 +225,6 @@ async function initProductPage() {
   const wrap = document.querySelector("#product-detail");
   if (!wrap) return;
 
-  // إذا كانت المنتجات غير محملة، نقوم بجلبها
   await fetchProducts();
 
   const params = new URLSearchParams(location.search);
@@ -280,7 +278,7 @@ async function initProductPage() {
     <div class="info-card" style="padding:0; overflow-x:auto;">
       <table class="compare-table">
         <thead>
-          <tr><th>المتجر</th><th>السعر</th><th>السعر الأصلي</th><th></th></tr>
+          <tr><th>المتجر</th><th>السعر</th><th>السعر الأصلي</th><th>الرابط</th></tr>
         </thead>
         <tbody>
           ${sortedStores
@@ -290,7 +288,9 @@ async function initProductPage() {
               <td>${s.name}${i === 0 ? " 🏆" : ""}</td>
               <td>${money(s.price)}</td>
               <td class="price-old">${money(s.old)}</td>
-              <td><button class="btn small ghost visit-store-btn" type="button" data-store="${s.name}">زيارة المتجر</button></td>
+              <td>
+                ${s.url ? `<a href="${s.url}" target="_blank" class="btn small ghost" style="text-decoration:none;">زيارة المتجر</a>` : `<span style="color:var(--muted);">لا يوجد رابط</span>`}
+              </td>
             </tr>`
             )
             .join("")}
@@ -317,12 +317,6 @@ function initContactForm() {
   });
 }
 
-document.addEventListener("click", (e) => {
-  const btn = e.target.closest(".visit-store-btn");
-  if (!btn) return;
-  showToast(`سيتم توجيهك إلى ${btn.dataset.store}...`);
-});
-
 function markActiveNav() {
   const current = location.pathname.split("/").pop() || "index.html";
   document.querySelectorAll(".bottom-nav a, .brand-links a").forEach((a) => {
@@ -333,12 +327,9 @@ function markActiveNav() {
 
 document.addEventListener("DOMContentLoaded", async () => {
   markActiveNav();
-  
-  // قبل أي شيء، نجلب المنتجات مرة واحدة إذا كنا في صفحة المنتج أو الرئيسية
   if (window.location.pathname.includes('product.html') || window.location.pathname.endsWith('/') || window.location.pathname.endsWith('index.html')) {
     await fetchProducts();
   }
-  
   initHomePage();
   initOffersPage();
   initCategoriesPage();
