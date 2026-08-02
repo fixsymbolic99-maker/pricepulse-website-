@@ -146,8 +146,9 @@ document.addEventListener("click", (e) => {
   showToast(`أفضل سعر لـ ${product.name}: ${money(best.price, currency, false)} من ${best.name}`);
 });
 
-async function fetchProducts() {
-  if (PRODUCTS.length > 0) return;
+// تم تعديل الدالة لقبول force للجلب الإجباري
+async function fetchProducts(force = false) {
+  if (PRODUCTS.length > 0 && !force) return;
   try {
     const response = await fetch(API_URL);
     if (!response.ok) throw new Error('Failed to fetch products');
@@ -235,20 +236,20 @@ async function initHomePage() {
   }
 }
 
-// ===== إصلاح صفحة العروض + أزرار الفرز =====
-function initOffersPage() {
+async function initOffersPage() {
   const grid = document.querySelector("#offers-grid");
   if (!grid) return;
+
+  // جلب البيانات بالقوة لتحديث المنتجات
+  await fetchProducts(true); 
 
   if (PRODUCTS.length === 0) {
     grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>لا توجد منتجات متاحة.</p></div>`;
     return;
   }
 
-  // تصفية المنتجات التي تحتوي على خصم حقيقي > 0%
   let list = PRODUCTS.filter(p => discountPct(bestPrice(p).old, bestPrice(p).price) > 0);
   
-  // إذا كان هناك منتجات بها خصم، اعرضها. وإلا اعرض رسالة عدم وجود عروض
   if (list.length === 0) {
     grid.innerHTML = `
       <div class="empty-state" style="padding: 40px;">
@@ -257,17 +258,14 @@ function initOffersPage() {
         <p style="font-size: 0.9rem; color: var(--text-dim);">ستظهر المنتجات هنا عند إضافة خصومات لها.</p>
       </div>
     `;
-    // تعطيل الأزرار إذا لم يوجد عروض
     const chips = document.querySelectorAll(".chip");
     chips.forEach(c => c.style.opacity = "0.5");
     return;
   }
 
-  // تمكين الأزرار وإظهار المنتجات
   const chips = document.querySelectorAll(".chip[data-sort]");
   chips.forEach(c => c.style.opacity = "1");
   
-  // ترتيب افتراضي: الأعلى خصم
   list.sort((a, b) => discountPct(bestPrice(b).old, bestPrice(b).price) - discountPct(bestPrice(a).old, bestPrice(a).price));
   renderGrid(grid, list);
 
@@ -291,10 +289,12 @@ function initOffersPage() {
   });
 }
 
-// ===== إصلاح صفحة الأقسام =====
-function initCategoriesPage() {
+async function initCategoriesPage() {
   const wrap = document.querySelector("#category-counts");
   if (!wrap) return;
+  
+  // جلب البيانات بالقوة لتحديث أعداد المنتجات
+  await fetchProducts(true); 
   if (PRODUCTS.length === 0) return;
   
   wrap.querySelectorAll(".cat-card").forEach((card) => {
