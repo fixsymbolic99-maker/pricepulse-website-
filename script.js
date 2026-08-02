@@ -15,10 +15,10 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
         white-space: nowrap; 
     }
     .currency-symbol { 
-        font-size: 1em; /* تم التعديل هنا: نفس حجم الرقم */
+        font-size: 1em; 
         font-weight: 600; 
         color: var(--text-dim, #8A7A6D); 
-        margin-right: 0px; /* تم إزالة المسافة */
+        margin-right: 0px; 
     }
     .price-number { 
         font-weight: 800; 
@@ -44,6 +44,20 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
     }
     .price-wrapper { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 8px; }
     .price-current { font-size: 1.15rem; color: var(--good); }
+    
+    /* === تنسيق المميزات داخل الكارت === */
+    .product-card-features {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        margin-top: 4px;
+        margin-bottom: 6px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* عرض سطرين فقط */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.5;
+    }
   `;
   document.head.appendChild(style);
 })();
@@ -61,7 +75,6 @@ function money(n, currency = 'USD', isOriginal = false) {
   const integerPart = parts[0];
   const decimalPart = parts[1] || '00';
 
-  // إزالة المسافات تماماً من الـ HTML لضمان الالتصاق
   if (currency === 'USD' || currency === 'EGP') {
     if (isOriginal) {
       return `<span class="price-amount"><span class="currency-symbol" style="text-decoration: none;">$</span><span class="price-original-number">${integerPart}.${decimalPart}</span></span>`;
@@ -110,6 +123,10 @@ function productCardHTML(p) {
       <div class="product-body">
         <div class="store-list">${storeTags}</div>
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
+        
+        <!-- ===== تم إضافة عرض المميزات هنا ===== -->
+        ${p.features ? `<div class="product-card-features">${p.features}</div>` : ''}
+        
         <div class="stars" style="margin-bottom: 6px; font-size: 0.85rem;">
           ${ratingStars}
           <span style="color:var(--muted); font-weight:600; font-size:.75rem;">(${p.reviews} تقييم)</span>
