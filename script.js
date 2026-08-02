@@ -12,7 +12,7 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
     .price-number { font-weight: 800; font-size: inherit; }
     .currency-symbol { font-size: 0.8em; font-weight: 600; margin-inline-start: 3px; color: var(--text-dim, #8A7A6D); }
     
-    /* التغيير الجديد: فصل السعرين */
+    /* فصل السعرين */
     .price-wrapper { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 8px; }
     .price-current { font-size: 1.15rem; color: var(--good); }
     .price-original { font-size: 0.85rem; color: var(--muted); text-decoration: line-through; }
@@ -65,10 +65,10 @@ function productCardHTML(p) {
         </div>
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
         
-        <!-- تم تعديل هيكل السعر ليصبح تحت بعضه -->
+        <!-- السعر الأصلي رقم فقط -->
         <div class="price-wrapper">
           <div class="price-current">${money(best.price, currency)}</div>
-          ${best.old > 0 ? `<div class="price-original">السعر الأصلي: ${money(best.old, currency)}</div>` : ''}
+          ${best.old > 0 ? `<div class="price-original">${money(best.old, currency)}</div>` : ''}
         </div>
 
         <button class="btn cheapest-btn" data-id="${p.id}" type="button">أفضل سعر</button>
@@ -294,10 +294,10 @@ async function initProductPage() {
           <span style="color:var(--muted); font-weight:600; font-size:.85rem;">(${product.reviews} تقييم)</span>
         </div>
         
-        <!-- تم تعديل هيكل السعر هنا أيضاً -->
+        <!-- السعر الأصلي رقم فقط هنا أيضاً -->
         <div class="price-wrapper">
           <div class="price-current" style="font-size:1.7rem;">${money(best.price, currency)}</div>
-          ${best.old > 0 ? `<div class="price-original">السعر الأصلي: ${money(best.old, currency)}</div>` : ''}
+          ${best.old > 0 ? `<div class="price-original">${money(best.old, currency)}</div>` : ''}
         </div>
 
         <button class="btn cheapest-btn" data-id="${product.id}" type="button" style="width:auto; padding:12px 22px;">
