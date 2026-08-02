@@ -53,9 +53,9 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
     .price-wrapper { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 8px; }
     .price-current { font-size: 1.15rem; color: var(--good); }
 
-    /* === تنسيق شارة الرقم الجديد === */
+    /* === تنسيق شارة الرقم الجديد (دائرة أنيقة) === */
     .store-rank-badge {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
         width: 24px;
@@ -65,9 +65,8 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
         border-radius: 50%;
         font-size: 0.75rem;
         font-weight: 800;
-        margin-inline-start: 8px; /* مسافة مظبوطة بين الاسم والرقم */
-        vertical-align: middle;
-        flex-shrink: 0;
+        margin-left: 8px; /* مسافة مظبوطة بين الرقم والاسم */
+        flex-shrink: 0; /* لمنع تغير حجم الدائرة */
     }
   `;
   document.head.appendChild(style);
@@ -397,9 +396,12 @@ async function initProductPage() {
             .map(
               (s, i) => `
             <tr class="${i === 0 ? "row-best" : ""}" style="border-bottom: 1px solid var(--border-soft);">
-              <!-- تم استبدال الرقم العادي بدائرة زرقاء (Badge) أنيقة -->
-              <td style="text-align: center; padding: 15px 10px; vertical-align: middle; direction: rtl;">
-                <span style="font-weight: 600;">${s.name}</span> <span class="store-rank-badge">${i + 1}</span>
+              <!-- تم حل مشكلة نزول الرقم: استخدام flex container ليظهر الاسم والرقم في نفس السطر -->
+              <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">
+                <div style="display: flex; align-items: center; justify-content: center; direction: ltr;">
+                  <span style="font-weight: 600;">${s.name}</span>
+                  <span class="store-rank-badge">${i + 1}</span>
+                </div>
               </td>
               <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">${money(s.price || product.price, currency, false)}</td>
               <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">
