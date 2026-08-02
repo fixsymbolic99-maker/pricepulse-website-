@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>العروض — PricePulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a href="#main" class="skip-link">تخطي إلى المحتوى</a>
+<header class="brand-bar" style="padding-bottom:26px;">
+  <div class="container brand-row">
+    <a href="index.html" class="logo">
+      <span class="logo-mark">P</span>
+      PricePulse
+    </a>
+    <nav class="brand-links" aria-label="القائمة الرئيسية">
+      <a href="index.html">الرئيسية</a>
+      <a href="categories.html">الأقسام</a>
+      <a href="offers.html" class="active">العروض</a>
+      <a href="contact.html">اتصل بنا</a>
+    </nav>
+    <button class="brand-icon-btn" type="button" aria-label="حسابي">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </button>
+  </div>
+</header>
+<main id="main" class="container" style="margin-top:22px;">
+  <div class="section-title"><h2>أفضل العروض والخصومات</h2></div>
+  <div class="ad-slot leaderboard">إعلان (728×90)<span>Google AdSense — Leaderboard</span></div>
+  <div class="filter-bar">
+    <button class="chip active" data-sort="discount" type="button">أعلى خصم</button>
+    <button class="chip" data-sort="price-asc" type="button">السعر: من الأقل للأعلى</button>
+    <button class="chip" data-sort="price-desc" type="button">السعر: من الأعلى للأقل</button>
+  </div>
+  <div class="layout">
+    <div>
+      <div class="grid" id="offers-grid"></div>
+      <div class="ad-slot infeed">إعلان (In-feed)<span>Google AdSense — Native / In-feed</span></div>
+    </div>
+    <aside><div class="ad-slot sidebar">إعلان (300×250)<span>Google AdSense — Sidebar / Sticky</span></div></aside>
+  </div>
+</main>
+<footer class="site-footer">
+  <div class="container footer-cols">
+    <div><h4>PricePulse</h4><ul><li>قارن الأسعار على الهواتف والإلكترونيات من كبار التجار.</li></ul></div>
+    <div><h4>روابط</h4><ul><li><a href="categories.html">الأقسام</a></li><li><a href="offers.html">العروض</a></li><li><a href="contact.html">اتصل بنا</a></li><li><a href="privacy.html">سياسة الخصوصية</a></li><li><a href="terms.html">شروط الخدمة</a></li></ul></div>
+  </div>
+  <div class="container footer-bottom">© 2026 PricePulse. جميع الحقوق محفوظة.</div>
+</footer>
+<nav class="bottom-nav" aria-label="القائمة السفلية">
+  <a href="index.html"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>الرئيسية</a>
+  <a href="categories.html"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>الأقسام</a>
+  <a href="offers.html" class="active"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" x2="7.01" y1="7" y2="7"/></svg></span>العروض</a>
+  <a href="contact.html"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>اتصل بنا</a>
+</nav>
+<script src="script.js"></script>
+</body>
+</html>
