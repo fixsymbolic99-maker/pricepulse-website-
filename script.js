@@ -5,12 +5,12 @@
 let PRODUCTS = [];
 const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 
-// ===== تنسيق العملة =====
+// ===== تنسيق العملة (تم التعديل ليكون مثل أمازون) =====
 (function addCurrencyStyle() {
   const style = document.createElement('style');
   style.textContent = `
     .price-number { font-weight: 800; font-size: inherit; }
-    .currency-symbol { font-size: 0.8em; font-weight: 600; margin-inline-start: 3px; color: var(--text-dim, #8A7A6D); }
+    .currency-symbol { font-size: 0.8em; font-weight: 600; color: var(--text-dim, #8A7A6D); }
     
     /* فصل السعرين */
     .price-wrapper { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 8px; }
@@ -25,9 +25,10 @@ function bestPrice(product) {
 }
 
 function money(n, currency = 'EGP') {
-  const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  // تم التعديل هنا: إضافة .00 وتغيير EGP لتكون قبل الرقم
+  const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (currency === 'EGP') {
-    return `<span class="price-number">${formatted}</span><span class="currency-symbol">ج.م</span>`;
+    return `<span class="currency-symbol">EGP</span> <span class="price-number">${formatted}</span>`;
   }
   return `<span class="currency-symbol">$</span><span class="price-number">${formatted}</span>`;
 }
