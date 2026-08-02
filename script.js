@@ -57,6 +57,9 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 })();
 
 function bestPrice(product) {
+  if (!product.stores || product.stores.length === 0) {
+    return { price: product.price, old: product.originalPrice || 0, name: product.storeId || 'Store' };
+  }
   return product.stores.reduce((a, b) => (a.price < b.price ? a : b));
 }
 
@@ -102,18 +105,21 @@ function showToast(msg) {
 }
 
 function productCardHTML(p) {
-  if (!p.stores || p.stores.length === 0) return '';
-  // هنا تم إزالة الـ bestPrice لأننا نريد عرض السعر الأساسي للمنتج في الكارت وليس سعر المتجر
-  const pct = discountPct(p.originalPrice || 0, p.price);
+  const best = bestPrice(p);
+  const pct = discountPct(best.old, best.price);
   const currency = p.currency || 'EGP';
+  
+  // عرض المتاجر إذا وجدت، وإذا لم توجد عرض اسم افتراضي
+  const storeTags = p.stores && p.stores.length > 0 
+    ? p.stores.map(s => `<span class="store-tag">${s.name}</span>`).join(' ') 
+    : (p.storeId ? `<span class="store-tag">${p.storeId}</span>` : '');
+
   return `
     <article class="product-card" data-id="${p.id}">
       ${pct > 0 ? `<span class="badge-drop">${pct}% خصم</span>` : ""}
       <div class="product-thumb" aria-hidden="true">${p.icon}</div>
       <div class="product-body">
-        <div class="store-list">
-          ${p.stores.map(s => `<span class="store-tag">${s.name}</span>`).join(' ')}
-        </div>
+        <div class="store-list">${storeTags}</div>
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
         
         <div class="price-wrapper">
@@ -331,7 +337,9 @@ async function initProductPage() {
   }
 
   const best = bestPrice(product);
-  const sortedStores = [...product.stores].sort((a, b) => a.price - b.price);
+  const sortedStores = (product.stores && product.stores.length > 0) 
+    ? [...product.stores].sort((a, b) => a.price - b.price) 
+    : [{ name: product.storeId || 'Store', price: product.price, url: product.url || '' }];
   const currency = product.currency || 'EGP';
 
   document.title = `${product.name} — PricePulse`;
@@ -375,7 +383,7 @@ async function initProductPage() {
                 <span>${s.name}</span> <span style="font-weight: bold; color: var(--accent, #8A7A6D);">${i + 1}</span>
               </td>
               <!-- هنا يتم عرض سعر المتجر الخاص (الذي تم إدخاله في الإدارة) -->
-              <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">${money(s.price, currency, false)}</td>
+              <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">${money(s.price || product.price, currency, false)}</td>
               <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">
                 ${s.url ? `<a href="${s.url}" target="_blank" class="btn small ghost" style="display: inline-block; text-decoration:none; margin: 0 auto;">زيارة المتجر</a>` : `<span style="color:var(--muted);">لا يوجد رابط</span>`}
               </td>
