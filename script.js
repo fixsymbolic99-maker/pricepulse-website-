@@ -65,14 +65,14 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
         border-radius: 50%;
         font-size: 0.75rem;
         font-weight: 800;
-        margin-left: 8px; /* مسافة مظبوطة بين الرقم والاسم */
-        flex-shrink: 0; /* لمنع تغير حجم الدائرة */
+        margin-left: 8px;
+        flex-shrink: 0;
     }
   `;
   document.head.appendChild(style);
 })();
 
-// ===== دالة أفضل سعر آمنة (حتى لو مفيش متاجر) =====
+// ===== دالة أفضل سعر آمنة =====
 function bestPrice(product) {
   if (!product.stores || product.stores.length === 0) {
     return { price: product.price, old: product.originalPrice || 0, name: product.storeId || 'المتجر' };
@@ -88,15 +88,11 @@ function money(n, currency = 'EGP', isOriginal = false) {
 
   if (currency === 'EGP') {
     if (isOriginal) {
-      // السعر الأصلي: EGP خارج التزيين، والرقم فقط عليه خط
       return `<span class="price-amount"><span class="currency-symbol" style="text-decoration: none;">EGP</span> <span class="price-original-number">${integerPart}.${decimalPart}</span></span>`;
     } else {
-      // السعر الحالي: بدون نقطة، والـ 00 مرفوعة
       return `<span class="price-amount"><span class="currency-symbol">EGP</span><span class="price-number">${integerPart}</span><span class="price-decimal-medium">${decimalPart}</span></span>`;
     }
   }
-  
-  // حالات العملة الأخرى
   if (isOriginal) {
     return `<span class="price-amount"><span class="currency-symbol" style="text-decoration: none;">$</span> <span class="price-original-number">${integerPart}.${decimalPart}</span></span>`;
   }
@@ -125,11 +121,13 @@ function productCardHTML(p) {
   const best = bestPrice(p);
   const pct = discountPct(best.old, best.price);
   const currency = p.currency || 'EGP';
-
-  // عرض المتاجر إذا وجدت، أو عرض فارغ إذا لم توجد
   const storeTags = p.stores && p.stores.length > 0 
     ? p.stores.map(s => `<span class="store-tag">${s.name}</span>`).join(' ') 
     : '';
+
+  // إظهار التقييم الحقيقي في الكارت
+  const roundedRating = Math.round(p.rating);
+  const ratingStars = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
 
   return `
     <article class="product-card" data-id="${p.id}">
@@ -139,7 +137,12 @@ function productCardHTML(p) {
         <div class="store-list">${storeTags}</div>
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
         
-        <!-- تم استخدام bestPrice لعرض أرخص سعر -->
+        <!-- عرض التقييم في الكارت -->
+        <div class="stars" style="margin-bottom: 6px; font-size: 0.85rem;">
+          ${ratingStars}
+          <span style="color:var(--muted); font-weight:600; font-size:.75rem;">(${p.reviews} تقييم)</span>
+        </div>
+
         <div class="price-wrapper">
           <div class="price-current">${money(best.price, currency, false)}</div>
           ${best.old > 0 ? `<div class="price-original">${money(best.old, currency, true)}</div>` : ''}
@@ -276,7 +279,7 @@ async function initHomePage() {
 function initOffersPage() {
   const grid = document.querySelector("#offers-grid");
   if (!grid) return;
-
+  // ... نفس منطق العروض
   if (PRODUCTS.length === 0) {
     grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>لا توجد منتجات متاحة.</p></div>`;
     return;
@@ -359,6 +362,12 @@ async function initProductPage() {
     : [{ name: product.storeId || 'Store', price: product.price, url: '' }];
   const currency = product.currency || 'EGP';
 
+  // حساب التقييم والنجوم
+  const rating = product.rating || 0;
+  const reviews = product.reviews || 0;
+  const roundedRating = Math.round(rating);
+  const ratingStars = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
+
   document.title = `${product.name} — PricePulse`;
 
   wrap.innerHTML = `
@@ -366,8 +375,9 @@ async function initProductPage() {
       <div class="pd-image" aria-hidden="true">${product.icon}</div>
       <div class="pd-info">
         <h1>${product.name}</h1>
-        <div class="stars" aria-label="التقييم ${product.rating} من 5">${"★".repeat(Math.round(product.rating))}${"☆".repeat(5 - Math.round(product.rating))}
-          <span style="color:var(--muted); font-weight:600; font-size:.85rem;">(${product.reviews} تقييم)</span>
+        <!-- استخدام التقييمات الحقيقية المخزنة في قاعدة البيانات -->
+        <div class="stars" aria-label="التقييم ${rating} من 5">${ratingStars}
+          <span style="color:var(--muted); font-weight:600; font-size:.85rem;">(${reviews} تقييم)</span>
         </div>
         
         <div class="price-wrapper">
@@ -396,7 +406,6 @@ async function initProductPage() {
             .map(
               (s, i) => `
             <tr class="${i === 0 ? "row-best" : ""}" style="border-bottom: 1px solid var(--border-soft);">
-              <!-- تم حل مشكلة نزول الرقم: استخدام flex container ليظهر الاسم والرقم في نفس السطر -->
               <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">
                 <div style="display: flex; align-items: center; justify-content: center; direction: ltr;">
                   <span style="font-weight: 600;">${s.name}</span>
