@@ -357,19 +357,24 @@ async function initProductPage() {
 
     <div class="section-title"><h2>قارن الأسعار عبر المتاجر</h2></div>
     <div class="info-card" style="padding:0; overflow-x:auto;">
-      <table class="compare-table">
+      <!-- تم ضبط عرض الأعمدة والمحاذاة لتكون دقيقة تحت بعضها -->
+      <table class="compare-table" style="width: 100%; border-collapse: collapse; text-align: center;">
         <thead>
-          <tr><th>المتجر</th><th>السعر</th><th>الرابط</th></tr>
+          <tr>
+            <th style="width: 25%; text-align: center; padding: 15px 10px; border-bottom: 1px solid var(--border-soft);">المتجر</th>
+            <th style="width: 35%; text-align: center; padding: 15px 10px; border-bottom: 1px solid var(--border-soft);">السعر</th>
+            <th style="width: 40%; text-align: center; padding: 15px 10px; border-bottom: 1px solid var(--border-soft);">الرابط</th>
+          </tr>
         </thead>
         <tbody>
           ${sortedStores
             .map(
               (s, i) => `
-            <tr class="${i === 0 ? "row-best" : ""}">
-              <td>${s.name}${i === 0 ? " 🏆" : ""}</td>
-              <td>${money(s.price, currency, false)}</td>
-              <td>
-                ${s.url ? `<a href="${s.url}" target="_blank" class="btn small ghost" style="text-decoration:none;">زيارة المتجر</a>` : `<span style="color:var(--muted);">لا يوجد رابط</span>`}
+            <tr class="${i === 0 ? "row-best" : ""}" style="border-bottom: 1px solid var(--border-soft);">
+              <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">${s.name}${i === 0 ? " 🏆" : ""}</td>
+              <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">${money(s.price, currency, false)}</td>
+              <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">
+                ${s.url ? `<a href="${s.url}" target="_blank" class="btn small ghost" style="display: inline-block; text-decoration:none; margin: 0 auto;">زيارة المتجر</a>` : `<span style="color:var(--muted);">لا يوجد رابط</span>`}
               </td>
             </tr>`
             )
