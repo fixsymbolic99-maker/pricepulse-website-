@@ -5,7 +5,7 @@
 let PRODUCTS = [];
 const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 
-// ===== تنسيق العملة (تم التعديل ليكون مثل أمازون تماماً) =====
+// ===== تنسيق العملة (تم التعديل النهائي بناءً على طلبك) =====
 (function addCurrencyStyle() {
   const style = document.createElement('style');
   style.textContent = `
@@ -24,9 +24,9 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
         font-weight: 800; 
         font-size: inherit; 
     }
-    /* رفع النقطة والـ 00 عالياً وتصغيرها جداً */
-    .price-decimal { 
-        font-size: 0.4em; 
+    /* حجم متوسط للسعر الحالي */
+    .price-decimal-medium { 
+        font-size: 0.65em; 
         font-weight: 700; 
         vertical-align: super; 
         line-height: 0; 
@@ -46,18 +46,26 @@ function bestPrice(product) {
   return product.stores.reduce((a, b) => (a.price < b.price ? a : b));
 }
 
-function money(n, currency = 'EGP') {
-  // هذا التعديل يضمن ظهور .00 دائماً ويفصل الرقم عن الجزء العشري
+// تم تعديل هذه الدالة لإضافة خيار isOriginal
+function money(n, currency = 'EGP', isOriginal = false) {
   const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const parts = formatted.split('.');
   const integerPart = parts[0];
   const decimalPart = parts[1] || '00';
 
-  if (currency === 'EGP') {
-    // وضع EGP قبل الرقم، ورفع .00 فوق الرقم
-    return `<span class="price-amount"><span class="currency-symbol">EGP</span><span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span></span>`;
+  let decimalHtml = '';
+  if (isOriginal) {
+    // السعر الأصلي: الجزء العشري يكون بنفس حجم الرقم الطبيعي (لكي يمر خط الشطب بشكل متناسق)
+    decimalHtml = `<span class="price-number">.${decimalPart}</span>`;
+  } else {
+    // السعر الحالي: الجزء العشري يكون بحجم متوسط ومرفوع قليلاً كما طلبت
+    decimalHtml = `<span class="price-decimal-medium">.${decimalPart}</span>`;
   }
-  return `<span class="price-amount"><span class="currency-symbol">$</span><span class="price-number">${integerPart}</span><span class="price-decimal">.${decimalPart}</span></span>`;
+
+  if (currency === 'EGP') {
+    return `<span class="price-amount"><span class="currency-symbol">EGP</span><span class="price-number">${integerPart}</span>${decimalHtml}</span>`;
+  }
+  return `<span class="price-amount"><span class="currency-symbol">$</span><span class="price-number">${integerPart}</span>${decimalHtml}</span>`;
 }
 
 function discountPct(oldP, newP) {
@@ -93,10 +101,10 @@ function productCardHTML(p) {
         </div>
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
         
-        <!-- السعر الحالي والأصلي بنفس الشكل -->
+        <!-- تمرير false للسعر الحالي، و true للسعر الأصلي -->
         <div class="price-wrapper">
-          <div class="price-current">${money(best.price, currency)}</div>
-          ${best.old > 0 ? `<div class="price-original">${money(best.old, currency)}</div>` : ''}
+          <div class="price-current">${money(best.price, currency, false)}</div>
+          ${best.old > 0 ? `<div class="price-original">${money(best.old, currency, true)}</div>` : ''}
         </div>
 
         <button class="btn cheapest-btn" data-id="${p.id}" type="button">أفضل سعر</button>
@@ -125,7 +133,7 @@ document.addEventListener("click", (e) => {
   if (!product) return;
   const best = bestPrice(product);
   const currency = product.currency || 'EGP';
-  showToast(`أفضل سعر لـ ${product.name}: ${money(best.price, currency)} من ${best.name}`);
+  showToast(`أفضل سعر لـ ${product.name}: ${money(best.price, currency, false)} من ${best.name}`);
 });
 
 async function fetchProducts() {
@@ -323,8 +331,8 @@ async function initProductPage() {
         </div>
         
         <div class="price-wrapper">
-          <div class="price-current" style="font-size:1.7rem;">${money(best.price, currency)}</div>
-          ${best.old > 0 ? `<div class="price-original">${money(best.old, currency)}</div>` : ''}
+          <div class="price-current" style="font-size:1.7rem;">${money(best.price, currency, false)}</div>
+          ${best.old > 0 ? `<div class="price-original">${money(best.old, currency, true)}</div>` : ''}
         </div>
 
         <button class="btn cheapest-btn" data-id="${product.id}" type="button" style="width:auto; padding:12px 22px;">
@@ -345,8 +353,8 @@ async function initProductPage() {
               (s, i) => `
             <tr class="${i === 0 ? "row-best" : ""}">
               <td>${s.name}${i === 0 ? " 🏆" : ""}</td>
-              <td>${money(s.price, currency)}</td>
-              <td class="price-old">${s.old > 0 ? money(s.old, currency) : '—'}</td>
+              <td>${money(s.price, currency, false)}</td>
+              <td class="price-old">${s.old > 0 ? money(s.old, currency, true) : '—'}</td>
               <td>
                 ${s.url ? `<a href="${s.url}" target="_blank" class="btn small ghost" style="text-decoration:none;">زيارة المتجر</a>` : `<span style="color:var(--muted);">لا يوجد رابط</span>`}
               </td>
