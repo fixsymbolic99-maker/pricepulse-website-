@@ -5,20 +5,17 @@
 let PRODUCTS = [];
 const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 
-// ===== إضافة تنسيق CSS لعملة (ج.م) بشكل ديناميكي =====
+// ===== تنسيق العملة =====
 (function addCurrencyStyle() {
   const style = document.createElement('style');
   style.textContent = `
-    .price-number {
-      font-weight: 800;
-      font-size: inherit;
-    }
-    .currency-symbol {
-      font-size: 0.8em;
-      font-weight: 600;
-      margin-inline-start: 3px;
-      color: var(--text-dim, #8A7A6D);
-    }
+    .price-number { font-weight: 800; font-size: inherit; }
+    .currency-symbol { font-size: 0.8em; font-weight: 600; margin-inline-start: 3px; color: var(--text-dim, #8A7A6D); }
+    
+    /* التغيير الجديد: فصل السعرين */
+    .price-wrapper { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 8px; }
+    .price-current { font-size: 1.15rem; color: var(--good); }
+    .price-original { font-size: 0.85rem; color: var(--muted); text-decoration: line-through; }
   `;
   document.head.appendChild(style);
 })();
@@ -67,10 +64,13 @@ function productCardHTML(p) {
           ${p.stores.map(s => `<span class="store-tag">${s.name}</span>`).join(' ')}
         </div>
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
-        <div class="price-row">
-          ${best.old > 0 ? `<span class="price-old">${money(best.old, currency)}</span>` : ''}
-          <span class="price-new">${money(best.price, currency)}</span>
+        
+        <!-- تم تعديل هيكل السعر ليصبح تحت بعضه -->
+        <div class="price-wrapper">
+          <div class="price-current">${money(best.price, currency)}</div>
+          ${best.old > 0 ? `<div class="price-original">السعر الأصلي: ${money(best.old, currency)}</div>` : ''}
         </div>
+
         <button class="btn cheapest-btn" data-id="${p.id}" type="button">أفضل سعر</button>
       </div>
     </article>
@@ -293,10 +293,13 @@ async function initProductPage() {
         <div class="stars" aria-label="التقييم ${product.rating} من 5">${"★".repeat(Math.round(product.rating))}${"☆".repeat(5 - Math.round(product.rating))}
           <span style="color:var(--muted); font-weight:600; font-size:.85rem;">(${product.reviews} تقييم)</span>
         </div>
-        <div class="price-row">
-          ${best.old > 0 ? `<span class="price-old">${money(best.old, currency)}</span>` : ''}
-          <span class="price-new">${money(best.price, currency)}</span>
+        
+        <!-- تم تعديل هيكل السعر هنا أيضاً -->
+        <div class="price-wrapper">
+          <div class="price-current" style="font-size:1.7rem;">${money(best.price, currency)}</div>
+          ${best.old > 0 ? `<div class="price-original">السعر الأصلي: ${money(best.old, currency)}</div>` : ''}
         </div>
+
         <button class="btn cheapest-btn" data-id="${product.id}" type="button" style="width:auto; padding:12px 22px;">
           احصل على أفضل سعر — ${best.name}
         </button>
