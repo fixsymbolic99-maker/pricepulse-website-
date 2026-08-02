@@ -30,7 +30,6 @@
 <main id="main" class="container" style="margin-top:22px; max-width:640px;">
   <div class="section-title"><h2>اتصل بنا</h2></div>
   <div class="info-card">
-    <!-- تم إزالة action mailto: واستبدالها بـ onsubmit JavaScript لضمان دعم العربية -->
     <form id="contact-form" onsubmit="sendEmail(event)" novalidate>
       <div class="form-field">
         <label for="name">الاسم</label>
@@ -64,10 +63,10 @@
   <a href="contact.html" class="active"><span class="ic"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1-.9-2-2-2z"/><polyline points="22,6 12,13 2,6"/></svg></span>اتصل بنا</a>
 </nav>
 
-<!-- كود جافاسكربت المخصص لحل مشكلة الترميز -->
 <script>
+  /* تم تعديل دالة الإرسال لحذف بيانات الاسم والإيميل من جسم الرسالة */
   function sendEmail(e) {
-    e.preventDefault(); // منع إرسال النموذج بالطريقة التقليدية
+    e.preventDefault(); 
     var name = document.getElementById('name').value.trim();
     var email = document.getElementById('email').value.trim();
     var message = document.getElementById('message').value.trim();
@@ -77,15 +76,9 @@
       return;
     }
 
-    // ترميز النص العربي بشكل صحيح
     var subject = encodeURIComponent("اتصال من موقع PricePulse");
-    var body = encodeURIComponent(
-      "الاسم: " + name + "\n" +
-      "البريد الإلكتروني: " + email + "\n\n" +
-      "الرسالة:\n" + message
-    );
+    var body = encodeURIComponent(message); // تم حذف الاسم والإيميل، هتظهر الرسالة بس
 
-    // فتح البريد مباشرة
     window.location.href = "mailto:tyko7.2026@gmail.com?subject=" + subject + "&body=" + body;
   }
 </script>
