@@ -9,11 +9,14 @@ function bestPrice(product) {
   return product.stores.reduce((a, b) => (a.price < b.price ? a : b));
 }
 
-function money(n) {
-  return "$" + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+function money(n, currency = 'EGP') {
+  const formatted = n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  if (currency === 'EGP') return formatted + ' ج.م';
+  return '$' + formatted;
 }
 
 function discountPct(oldP, newP) {
+  if (!oldP || oldP === 0) return 0;
   return Math.round(((oldP - newP) / oldP) * 100);
 }
 
@@ -34,6 +37,8 @@ function productCardHTML(p) {
   if (!p.stores || p.stores.length === 0) return '';
   const best = bestPrice(p);
   const pct = discountPct(best.old, best.price);
+  // افتراض أن العملة هي EGP ما لم يحدد خلاف ذلك
+  const currency = p.currency || 'EGP';
   return `
     <article class="product-card" data-id="${p.id}">
       ${pct > 0 ? `<span class="badge-drop">${pct}% خصم</span>` : ""}
@@ -44,8 +49,8 @@ function productCardHTML(p) {
         </div>
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
         <div class="price-row">
-          <span class="price-old">${money(best.old)}</span>
-          <span class="price-new">${money(best.price)}</span>
+          ${best.old > 0 ? `<span class="price-old">${money(best.old, currency)}</span>` : ''}
+          <span class="price-new">${money(best.price, currency)}</span>
         </div>
         <button class="btn cheapest-btn" data-id="${p.id}" type="button">أفضل سعر</button>
       </div>
@@ -72,7 +77,8 @@ document.addEventListener("click", (e) => {
   const product = PRODUCTS.find((p) => p.id === btn.dataset.id);
   if (!product) return;
   const best = bestPrice(product);
-  showToast(`أفضل سعر لـ ${product.name}: ${money(best.price)} من ${best.name}`);
+  const currency = product.currency || 'EGP';
+  showToast(`أفضل سعر لـ ${product.name}: ${money(best.price, currency)} من ${best.name}`);
 });
 
 async function fetchProducts() {
@@ -81,6 +87,10 @@ async function fetchProducts() {
     const response = await fetch(API_URL);
     if (!response.ok) throw new Error('Failed to fetch products');
     PRODUCTS = await response.json();
+    // إضافة حقل العملة إذا لم يكن موجوداً
+    PRODUCTS.forEach(p => {
+      if (!p.currency) p.currency = 'EGP';
+    });
   } catch (err) {
     console.error('Error loading products:', err);
     PRODUCTS = [];
@@ -253,6 +263,7 @@ async function initProductPage() {
 
   const best = bestPrice(product);
   const sortedStores = [...product.stores].sort((a, b) => a.price - b.price);
+  const currency = product.currency || 'EGP';
 
   document.title = `${product.name} — PricePulse`;
 
@@ -265,8 +276,8 @@ async function initProductPage() {
           <span style="color:var(--muted); font-weight:600; font-size:.85rem;">(${product.reviews} تقييم)</span>
         </div>
         <div class="price-row">
-          <span class="price-old">${money(best.old)}</span>
-          <span class="price-new">${money(best.price)}</span>
+          ${best.old > 0 ? `<span class="price-old">${money(best.old, currency)}</span>` : ''}
+          <span class="price-new">${money(best.price, currency)}</span>
         </div>
         <button class="btn cheapest-btn" data-id="${product.id}" type="button" style="width:auto; padding:12px 22px;">
           احصل على أفضل سعر — ${best.name}
@@ -286,8 +297,8 @@ async function initProductPage() {
               (s, i) => `
             <tr class="${i === 0 ? "row-best" : ""}">
               <td>${s.name}${i === 0 ? " 🏆" : ""}</td>
-              <td>${money(s.price)}</td>
-              <td class="price-old">${money(s.old)}</td>
+              <td>${money(s.price, currency)}</td>
+              <td class="price-old">${s.old > 0 ? money(s.old, currency) : '—'}</td>
               <td>
                 ${s.url ? `<a href="${s.url}" target="_blank" class="btn small ghost" style="text-decoration:none;">زيارة المتجر</a>` : `<span style="color:var(--muted);">لا يوجد رابط</span>`}
               </td>
