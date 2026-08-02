@@ -48,7 +48,6 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
   document.head.appendChild(style);
 })();
 
-// ===== دوال المساعدة الأساسية =====
 function bestPrice(product) {
   if (!product.stores || product.stores.length === 0) {
     return { price: product.price, old: product.originalPrice || 0, name: product.storeId || 'المتجر' };
@@ -104,7 +103,7 @@ function productCardHTML(p) {
   const ratingStars = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
 
   return `
-    <article class="product-card" data-id="${p.id}">
+    <article class="product-card" data-id="${p.id}" data-category="${p.category || 'phones'}">
       ${pct > 0 ? `<span class="badge-drop">${pct}% خصم</span>` : ""}
       <div class="product-thumb" aria-hidden="true">${p.icon}</div>
       <div class="product-body">
@@ -130,7 +129,7 @@ function renderGrid(container, products) {
     container.innerHTML = `
       <div class="empty-state">
         <div class="icon">🔍</div>
-        <p>لا توجد نتائج مطابقة.</p>
+        <p>لا توجد منتجات مطابقة.</p>
       </div>`;
     return;
   }
@@ -184,6 +183,7 @@ async function initHomePage() {
   const searchInput = document.querySelector("#search-input");
   const tabs = document.querySelectorAll(".tab[data-filter]");
   let activeFilter = initialFilter;
+
   function applyFilters() {
     const term = (searchInput?.value || "").trim();
     let list = PRODUCTS;
@@ -195,6 +195,7 @@ async function initHomePage() {
     }
     renderGrid(grid, list);
   }
+
   tabs.forEach((tab) => {
     if (tab.dataset.filter === activeFilter) {
       tab.classList.add("active");
@@ -234,18 +235,39 @@ async function initHomePage() {
   }
 }
 
+// ===== تم إصلاح دالة صفحة العروض =====
 function initOffersPage() {
   const grid = document.querySelector("#offers-grid");
   if (!grid) return;
+
   if (PRODUCTS.length === 0) {
     grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>لا توجد منتجات متاحة.</p></div>`;
     return;
   }
-  const withDiscount = PRODUCTS.map((p) => ({ p, best: bestPrice(p) }))
-    .filter((x) => discountPct(x.best.old, x.best.price) > 0)
-    .sort((a, b) => discountPct(b.best.old, b.best.price) - discountPct(a.best.old, a.best.price));
-  let list = withDiscount.map((x) => x.p);
+
+  const withDiscount = PRODUCTS.filter(p => discountPct(bestPrice(p).old, bestPrice(p).price) > 0)
+    .sort((a, b) => discountPct(bestPrice(b).old, bestPrice(b).price) - discountPct(bestPrice(a).old, bestPrice(a).price));
+
+  let list = withDiscount;
+  
+  // إذا مفيش منتجات فيها خصم، اعرض جميع المنتجات العادية
+  if (list.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state" style="padding: 40px;">
+        <div class="icon">🏷️</div>
+        <p>لا توجد عروض وخصومات متاحة حالياً.</p>
+        <p style="font-size: 0.9rem; color: var(--text-dim);">ستظهر المنتجات هنا عند إضافة خصومات لها.</p>
+      </div>
+    `;
+    // إخفاء الأزرار أو عدم تفعيلها إذا مفيش منتجات
+    const chips = document.querySelectorAll(".chip");
+    chips.forEach(c => c.style.opacity = "0.5");
+    return;
+  }
+
+  // عرض المنتجات وتمكين الأزرار
   renderGrid(grid, list);
+
   const chips = document.querySelectorAll(".chip[data-sort]");
   chips.forEach((chip) => {
     chip.addEventListener("click", () => {
@@ -267,15 +289,21 @@ function initOffersPage() {
   });
 }
 
+// ===== تم إصلاح دالة صفحة الأقسام =====
 function initCategoriesPage() {
   const wrap = document.querySelector("#category-counts");
   if (!wrap) return;
   if (PRODUCTS.length === 0) return;
+  
+  // حساب عدد المنتجات لكل قسم بناءً على البيانات الحقيقية
   wrap.querySelectorAll(".cat-card").forEach((card) => {
     const cat = card.dataset.category;
     const count = PRODUCTS.filter((p) => p.category === cat).length;
     const countEl = card.querySelector(".count");
-    if (countEl) countEl.textContent = `${count} منتج`;
+    if (countEl) {
+      // تحديث النص ليظهر العدد الحقيقي
+      countEl.textContent = `${count} منتج`;
+    }
   });
 }
 
@@ -347,7 +375,6 @@ async function initProductPage() {
             <tr class="${i === 0 ? "row-best" : ""}" style="border-bottom: 1px solid var(--border-soft);">
               <td style="width: 25%; text-align: center; padding: 15px 10px; vertical-align: middle;">
                 <div style="display: flex; align-items: center; justify-content: center; direction: ltr; width: 100%;">
-                  <!-- استخدام flex: 1 للاسم ليدفع الرقم دائماً لنفس المكان -->
                   <span style="flex: 1; text-align: center; font-weight: 600; color: ${i === 0 ? 'var(--good)' : 'var(--text)'};">${s.name}</span>
                   <span style="width: 1.8em; text-align: center; font-weight: 700; color: ${i === 0 ? 'var(--good)' : 'var(--text)'};">${i + 1}</span>
                 </div>
