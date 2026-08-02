@@ -103,8 +103,8 @@ function showToast(msg) {
 
 function productCardHTML(p) {
   if (!p.stores || p.stores.length === 0) return '';
-  const best = bestPrice(p);
-  const pct = discountPct(best.old, best.price);
+  // هنا تم إزالة الـ bestPrice لأننا نريد عرض السعر الأساسي للمنتج في الكارت وليس سعر المتجر
+  const pct = discountPct(p.originalPrice || 0, p.price);
   const currency = p.currency || 'EGP';
   return `
     <article class="product-card" data-id="${p.id}">
@@ -117,8 +117,9 @@ function productCardHTML(p) {
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
         
         <div class="price-wrapper">
-          <div class="price-current">${money(best.price, currency, false)}</div>
-          ${best.old > 0 ? `<div class="price-original">${money(best.old, currency, true)}</div>` : ''}
+          <!-- تم استخدام السعر الأساسي p.price بدلاً من best.price -->
+          <div class="price-current">${money(p.price, currency, false)}</div>
+          ${p.originalPrice && p.originalPrice > 0 ? `<div class="price-original">${money(p.originalPrice, currency, true)}</div>` : ''}
         </div>
 
         <button class="btn cheapest-btn" data-id="${p.id}" type="button">أفضل سعر</button>
@@ -345,8 +346,8 @@ async function initProductPage() {
         </div>
         
         <div class="price-wrapper">
-          <div class="price-current" style="font-size:1.7rem;">${money(best.price, currency, false)}</div>
-          ${best.old > 0 ? `<div class="price-original">${money(best.old, currency, true)}</div>` : ''}
+          <div class="price-current" style="font-size:1.7rem;">${money(product.price, currency, false)}</div>
+          ${product.originalPrice > 0 ? `<div class="price-original">${money(product.originalPrice, currency, true)}</div>` : ''}
         </div>
 
         <button class="btn cheapest-btn" data-id="${product.id}" type="button" style="width:auto; padding:12px 22px;">
@@ -370,10 +371,10 @@ async function initProductPage() {
             .map(
               (s, i) => `
             <tr class="${i === 0 ? "row-best" : ""}" style="border-bottom: 1px solid var(--border-soft);">
-              <!-- تم تعديل الاتجاه إلى RTL ووضع الرقم بعد الاسم ليظهر على يمين المتجر -->
               <td style="text-align: center; padding: 15px 10px; vertical-align: middle; direction: rtl;">
                 <span>${s.name}</span> <span style="font-weight: bold; color: var(--accent, #8A7A6D);">${i + 1}</span>
               </td>
+              <!-- هنا يتم عرض سعر المتجر الخاص (الذي تم إدخاله في الإدارة) -->
               <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">${money(s.price, currency, false)}</td>
               <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">
                 ${s.url ? `<a href="${s.url}" target="_blank" class="btn small ghost" style="display: inline-block; text-decoration:none; margin: 0 auto;">زيارة المتجر</a>` : `<span style="color:var(--muted);">لا يوجد رابط</span>`}
