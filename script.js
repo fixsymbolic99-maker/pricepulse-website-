@@ -5,7 +5,7 @@
 let PRODUCTS = [];
 const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
 
-// ===== تنسيق العملة والشارات =====
+// ===== تنسيق العملة =====
 (function addCurrencyStyle() {
   const style = document.createElement('style');
   style.textContent = `
@@ -24,8 +24,6 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
         font-weight: 800; 
         font-size: inherit; 
     }
-    
-    /* السعر الحالي: حجم متوسط ومرفوع (بدون نقطة) */
     .price-decimal-medium { 
         font-size: 0.65em; 
         font-weight: 700; 
@@ -34,45 +32,23 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
         display: inline-block;
         margin-left: 1px;
     }
-
-    /* حاوية السعر الأصلي */
     .price-original { 
         font-size: 0.85rem; 
         color: var(--muted); 
         display: inline-block;
     }
-
-    /* هذا الكلاس يطبق خط الشطب على الرقم فقط */
     .price-original-number {
         text-decoration: line-through !important;
         font-weight: 800;
         font-size: inherit;
     }
-    
-    /* فصل السعرين في البطاقة */
     .price-wrapper { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-bottom: 8px; }
     .price-current { font-size: 1.15rem; color: var(--good); }
-
-    /* === تنسيق شارة الرقم الجديد (دائرة أنيقة) === */
-    .store-rank-badge {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 24px;
-        height: 24px;
-        background: var(--accent-soft);
-        color: var(--accent-hover);
-        border-radius: 50%;
-        font-size: 0.75rem;
-        font-weight: 800;
-        margin-left: 8px;
-        flex-shrink: 0;
-    }
   `;
   document.head.appendChild(style);
 })();
 
-// ===== دالة أفضل سعر آمنة =====
+// ===== دوال المساعدة الأساسية =====
 function bestPrice(product) {
   if (!product.stores || product.stores.length === 0) {
     return { price: product.price, old: product.originalPrice || 0, name: product.storeId || 'المتجر' };
@@ -111,7 +87,6 @@ function showToast(msg) {
     toast.className = "toast";
     document.body.appendChild(toast);
   }
-  // تم إصلاح المشكلة هنا: تغيير textContent إلى innerHTML
   toast.innerHTML = msg; 
   toast.classList.add("show");
   clearTimeout(showToast._t);
@@ -125,8 +100,6 @@ function productCardHTML(p) {
   const storeTags = p.stores && p.stores.length > 0 
     ? p.stores.map(s => `<span class="store-tag">${s.name}</span>`).join(' ') 
     : '';
-
-  // إظهار التقييم الحقيقي في الكارت
   const roundedRating = Math.round(p.rating);
   const ratingStars = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
 
@@ -137,18 +110,14 @@ function productCardHTML(p) {
       <div class="product-body">
         <div class="store-list">${storeTags}</div>
         <h3><a href="product.html?id=${p.id}&cat=${p.category}">${p.name}</a></h3>
-        
-        <!-- عرض التقييم في الكارت -->
         <div class="stars" style="margin-bottom: 6px; font-size: 0.85rem;">
           ${ratingStars}
           <span style="color:var(--muted); font-weight:600; font-size:.75rem;">(${p.reviews} تقييم)</span>
         </div>
-
         <div class="price-wrapper">
           <div class="price-current">${money(best.price, currency, false)}</div>
           ${best.old > 0 ? `<div class="price-original">${money(best.old, currency, true)}</div>` : ''}
         </div>
-
         <button class="btn cheapest-btn" data-id="${p.id}" type="button">أفضل سعر</button>
       </div>
     </article>
@@ -196,31 +165,25 @@ async function fetchProducts() {
 async function initHomePage() {
   const grid = document.querySelector("#product-grid");
   if (!grid) return;
-
   await fetchProducts();
   if (PRODUCTS.length === 0) {
     grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>تعذر تحميل المنتجات. حاول مرة أخرى لاحقاً.</p></div>`;
     return;
   }
-
   let initialFilter = "all";
   const returnCat = sessionStorage.getItem('returnCategory');
   if (returnCat) {
     initialFilter = returnCat;
     sessionStorage.removeItem('returnCategory');
   }
-
   const savedScroll = parseInt(sessionStorage.getItem('returnScroll') || '0');
   const savedCardId = sessionStorage.getItem('returnCardId');
   sessionStorage.removeItem('returnScroll');
   sessionStorage.removeItem('returnCardId');
-
   renderGrid(grid, PRODUCTS);
-
   const searchInput = document.querySelector("#search-input");
   const tabs = document.querySelectorAll(".tab[data-filter]");
   let activeFilter = initialFilter;
-
   function applyFilters() {
     const term = (searchInput?.value || "").trim();
     let list = PRODUCTS;
@@ -232,7 +195,6 @@ async function initHomePage() {
     }
     renderGrid(grid, list);
   }
-
   tabs.forEach((tab) => {
     if (tab.dataset.filter === activeFilter) {
       tab.classList.add("active");
@@ -242,9 +204,7 @@ async function initHomePage() {
       tab.setAttribute("aria-selected", "false");
     }
   });
-
   searchInput?.addEventListener("input", applyFilters);
-
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
       tabs.forEach((t) => t.classList.remove("active"));
@@ -253,14 +213,11 @@ async function initHomePage() {
       applyFilters();
     });
   });
-
   document.querySelector("#search-form")?.addEventListener("submit", (e) => {
     e.preventDefault();
     applyFilters();
   });
-
   applyFilters();
-
   if (savedScroll > 0 || savedCardId) {
     setTimeout(() => {
       if (savedCardId) {
@@ -280,19 +237,15 @@ async function initHomePage() {
 function initOffersPage() {
   const grid = document.querySelector("#offers-grid");
   if (!grid) return;
-
   if (PRODUCTS.length === 0) {
     grid.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>لا توجد منتجات متاحة.</p></div>`;
     return;
   }
-
   const withDiscount = PRODUCTS.map((p) => ({ p, best: bestPrice(p) }))
     .filter((x) => discountPct(x.best.old, x.best.price) > 0)
     .sort((a, b) => discountPct(b.best.old, b.best.price) - discountPct(a.best.old, a.best.price));
-
   let list = withDiscount.map((x) => x.p);
   renderGrid(grid, list);
-
   const chips = document.querySelectorAll(".chip[data-sort]");
   chips.forEach((chip) => {
     chip.addEventListener("click", () => {
@@ -318,7 +271,6 @@ function initCategoriesPage() {
   const wrap = document.querySelector("#category-counts");
   if (!wrap) return;
   if (PRODUCTS.length === 0) return;
-  
   wrap.querySelectorAll(".cat-card").forEach((card) => {
     const cat = card.dataset.category;
     const count = PRODUCTS.filter((p) => p.category === cat).length;
@@ -330,19 +282,14 @@ function initCategoriesPage() {
 async function initProductPage() {
   const wrap = document.querySelector("#product-detail");
   if (!wrap) return;
-
   await fetchProducts();
-
   const params = new URLSearchParams(location.search);
   const id = params.get("id") || (PRODUCTS.length > 0 ? PRODUCTS[0].id : null);
-  
   if (!id || PRODUCTS.length === 0) {
     wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>المنتج غير موجود.</p></div>`;
     return;
   }
-
   const cat = params.get("cat") || "all";
-
   if (cat && cat !== "all") {
     sessionStorage.setItem('returnCategory', cat);
   } else {
@@ -350,25 +297,20 @@ async function initProductPage() {
   }
   sessionStorage.setItem('returnScroll', window.scrollY);
   sessionStorage.setItem('returnCardId', id);
-
   const product = PRODUCTS.find((p) => p.id === id);
   if (!product) {
     wrap.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>المنتج غير موجود.</p></div>`;
     return;
   }
-
   const best = bestPrice(product);
   const sortedStores = product.stores && product.stores.length > 0
     ? [...product.stores].sort((a, b) => a.price - b.price)
     : [{ name: product.storeId || 'Store', price: product.price, url: '' }];
   const currency = product.currency || 'EGP';
-
-  // حساب التقييم والنجوم
   const rating = product.rating || 0;
   const reviews = product.reviews || 0;
   const roundedRating = Math.round(rating);
   const ratingStars = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
-
   document.title = `${product.name} — PricePulse`;
 
   wrap.innerHTML = `
@@ -379,18 +321,15 @@ async function initProductPage() {
         <div class="stars" aria-label="التقييم ${rating} من 5">${ratingStars}
           <span style="color:var(--muted); font-weight:600; font-size:.85rem;">(${reviews} تقييم)</span>
         </div>
-        
         <div class="price-wrapper">
           <div class="price-current" style="font-size:1.7rem;">${money(best.price, currency, false)}</div>
           ${best.old > 0 ? `<div class="price-original">${money(best.old, currency, true)}</div>` : ''}
         </div>
-
         <button class="btn cheapest-btn" data-id="${product.id}" type="button" style="width:auto; padding:12px 22px;">
           احصل على أفضل سعر — ${best.name}
         </button>
       </div>
     </div>
-
     <div class="section-title"><h2>قارن الأسعار عبر المتاجر</h2></div>
     <div class="info-card" style="padding:0; overflow-x:auto;">
       <table class="compare-table" style="width: 100%; border-collapse: collapse; text-align: center;">
@@ -407,9 +346,10 @@ async function initProductPage() {
               (s, i) => `
             <tr class="${i === 0 ? "row-best" : ""}" style="border-bottom: 1px solid var(--border-soft);">
               <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">
+                <!-- تم إزالة الشارة الدائرية، وتم تثبيت عرض الرقم ليظهر بجانب الاسم بمسافة ثابتة ومتساوية -->
                 <div style="display: flex; align-items: center; justify-content: center; direction: ltr;">
-                  <span style="font-weight: 600;">${s.name}</span>
-                  <span class="store-rank-badge">${i + 1}</span>
+                  <span style="font-weight: 600; color: var(--text);">${s.name}</span>
+                  <span style="display: inline-block; width: 1.2em; text-align: center; font-weight: 700; margin-left: 8px;">${i + 1}</span>
                 </div>
               </td>
               <td style="text-align: center; padding: 15px 10px; vertical-align: middle;">${money(s.price || product.price, currency, false)}</td>
