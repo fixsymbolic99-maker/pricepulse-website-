@@ -52,7 +52,7 @@ const API_URL = 'https://pricepulse1.vercel.app/api/public/products';
         margin-top: 4px;
         margin-bottom: 6px;
         display: -webkit-box;
-        -webkit-line-clamp: 2; /* عرض سطرين فقط */
+        -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -359,6 +359,15 @@ async function initProductPage() {
           <div class="price-current" style="font-size:1.7rem;">${money(best.price, currency, false)}</div>
           ${best.old > 0 ? `<div class="price-original">${money(best.old, currency, true)}</div>` : ''}
         </div>
+
+        <!-- ===== تم إضافة المميزات هنا لصفحة المنتج ===== -->
+        ${product.features ? `
+          <div class="features-wrapper" style="margin: 12px 0; padding: 10px; background: var(--surface-2); border-radius: var(--radius-xs); border: 1px solid var(--border-soft);">
+            <h4 style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 4px;">المميزات</h4>
+            <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text); white-space: pre-wrap;">${product.features}</p>
+          </div>
+        ` : ''}
+
         <button class="btn cheapest-btn" data-id="${product.id}" type="button" style="width:auto; padding:12px 22px;">
           احصل على أفضل سعر — ${best.name}
         </button>
